@@ -32,6 +32,7 @@ html, body {
 	width: 100%;
 	background: hsl(0, 0%, 80%);
 	color: hsl(0, 0%, 0%);
+	-webkit-text-size-adjust: none;
 }
 
 body {
