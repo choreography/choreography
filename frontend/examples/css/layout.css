@@ -23,6 +23,7 @@ nav.horizontal > * {
 	Foundational Layout
 */
 
+
 article.view {
 	position: absolute;
 	top: 0;
@@ -31,25 +32,6 @@ article.view {
 	width: 100%;
 	min-height: 100%;
 }
-
-a.inline {
-	display: inline;
-	line-height: 1;
-	border-bottom: 2px solid;
-}
-
-a.inline:after {
-	content: '';
-	display: inline-block;
-	width: .5em;
-	height: .5em;
-	margin-left: .1em;
-	vertical-align: .25em;
-	background-repeat: no-repeat;
-	background-size: 100%;
-}
-
-
 
 
 
@@ -73,26 +55,10 @@ small { font-size: 0.667em }
 abbr, [title] { text-decoration: none; cursor: help }
 
 
-
-/* Testing larger base font-size (22px) and lower typographic scale maximum */
 h1 { font-size: 2.441em }
 h2 { font-size: 1.953em }
 h3 { font-size: 1.563em }
 h4 { font-size: 1.250em }
-
-/* @media only screen and (max-width: 900px) {
-	h1 { font-size: 3.998em }
-	h2 { font-size: 2.827em }
-	h3 { font-size: 1.999em }
-	h4 { font-size: 1.414em }
-}
-
-@media only screen and (max-width: 800px) {
-	h1 { font-size: 3.157em }
-	h2 { font-size: 2.369em }
-	h3 { font-size: 1.777em }
-	h4 { font-size: 1.333em }
-} */
 
 @media only screen and (max-width: 700px) {
 	h1 { font-size: 2.441em }
@@ -125,6 +91,8 @@ h4 { font-size: 1.250em }
 a.inline:after {
 	background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cGF0aCBkPSJNODAuODcgNTEuMjRjLTMuNSAwLTYuMzYgMi44NC02LjM2IDYuMzV2MjYuOTNjMCAxLjQ3LTEuMTMgMi42Ni0yLjYgMi42NkgxNS40Yy0xLjQ3IDAtMi42Ni0xLjItMi42Ni0yLjY2di01Ni41YzAtMS40NiAxLjItMi42NSAyLjY2LTIuNjVoMjYuOTdjMy41IDAgNi4zNi0yLjg0IDYuMzYtNi4zNXMtMi44NS02LjM2LTYuMzYtNi4zNmgtMjdDNi45IDEyLjcgMCAxOS42IDAgMjguMDd2NTYuNWMwIDguNDcgNi45IDE1LjM3IDE1LjM2IDE1LjM3aDU2LjVjOC40NyAwIDE1LjM2LTYuOSAxNS4zNi0xNS4zN1Y1Ny42YzAtMy41Mi0yLjg0LTYuMzYtNi4zNS02LjM2ek04NC41NyAwSDU4LjIzYy0zLjUgMC02LjM1IDIuODUtNi4zNSA2LjM2IDAgMy41IDIuODQgNi4zNSA2LjM1IDYuMzVoMjBMMzYuMDcgNTQuOWMtMi40OCAyLjQ4LTIuNDggNi41IDAgOSAxLjI0IDEuMjMgMi44NyAxLjg1IDQuNSAxLjg1IDEuNjIgMCAzLjI1LS42MiA0LjUtMS44Nkw4Ny4yIDIxLjd2MjBjMCAzLjUyIDIuODUgNi4zNiA2LjM2IDYuMzYgMy41IDAgNi4zNS0yLjg0IDYuMzUtNi4zNVYxNS40Qzk5Ljk3IDYuOSA5My4wNyAwIDg0LjYgMHoiLz48L3N2Zz4=);
 }
+
+
 
 
 /*
@@ -165,6 +133,21 @@ header.primary nav {
 	right: 40px;
 }
 
+
+
+
+
+/*
+	Tile Navigation
+*/
+
+nav.tiles {
+	max-width: 1280px;
+	margin: 0 auto;
+	padding: 2%;
+	font-size: 0;
+	text-align: center;
+}
 
 
 

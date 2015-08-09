@@ -108,6 +108,7 @@ var Choreo = {
 		if(!transition && this.transits.default)
 		{
 			transition = this.transits.default;
+			isReverse = false;
 		}
 		
 		/// Worst case, just do the minimal
@@ -151,7 +152,7 @@ var Choreo = {
 		var cache = {};
 		if(transition.pre) transition.pre.call(context, cache);
 		
-		Choreo.Entry(from, to);
+		Choreo.Entry(context.from, context.to); // (We use from/to of context to respect reversibility)
 		
 		var animation = (typeof transition === 'function'? transition.call(context, cache): transition.constructor.call(context, cache));
 		// TODO: Test if animation is truthy/valid?
@@ -237,13 +238,14 @@ var Choreo = {
 			
 			// Need to fix ancestor as per above...
 			
+			/// Allow layout and then calculate it
+			from.style.display = '';
+			to.style.display = '';
+			
 			/// Get bounding boxes and prep layouts
 			var fbox = from.getBoundingClientRect();
-			var abox = ancestor.getBoundingClientRect();
-			
-			/// Allow layout and then calculate it
-			to.style.display = '';
 			var tbox = to.getBoundingClientRect();
+			var abox = ancestor.getBoundingClientRect();
 			
 			/// Share layout coordinates
 			to.style.position = from.style.position = 'absolute';
@@ -276,7 +278,7 @@ var Choreo = {
 		// TODO: Make reversable for cancelations, e.g. swap front with back?
 		
 		// Make front permanent, hide back
-		if(front) front.style.visibility = '';
+// 		if(front) front.style.display = '';
 		if(back) back.style.display = 'none';
 		
 		if(front && back)
@@ -346,8 +348,85 @@ var Choreo = {
 		},
 		
 		/// Work in Progress; I want to be able to reveal an element from growing or shrinking from a circle (or other shape)
-		reveal: function(element, direction) {
-			// ... ?
+		reveal: function(element, options) {
+			var isWrapped = false;
+			var view = Choreo.Utility.closestClip(element);
+			var parent = options.context? options.context.from.parentNode : view;
+			var viewRect = view.getBoundingClientRect();
+			var elementRect = element.getBoundingClientRect();
+			var proxy = element.cloneNode(true);
+			var wrapper = document.createElement('div');
+			proxy.style.position = 'absolute';
+			proxy.style.top = '50%';
+			proxy.style.left = '50%';
+			proxy.style.width = elementRect.width + 'px';
+			proxy.style.height = elementRect.height + 'px';
+			proxy.style.margin = '0';
+			proxy.style.willChange = 'transform';
+			wrapper.style.position = 'absolute';
+			if(options.occlude) wrapper.style.overflow = 'hidden';
+			wrapper.style.borderRadius = '50%';
+			if(options.background) wrapper.style.background = options.background;
+			wrapper.style.willChange = 'transform';
+			wrapper.appendChild(proxy);
+			
+			var minDiameter = Math.sqrt(elementRect.width*elementRect.width + elementRect.height*elementRect.height);
+			var maxDiameter = (function(a, b) {
+				var width = a.width + 2*Math.abs((a.left + a.width*.5) - (b.left + b.width*.5));
+				var height = a.height + 2*Math.abs((a.top + a.height*.5) - (b.top + b.height*.5));
+				var centerToEdge = Math.sqrt(width*width + height*height);
+				return centerToEdge;
+			})(viewRect, elementRect);
+			wrapper.style.width = wrapper.style.height = minDiameter + 'px';
+			
+			var max = 1 + (maxDiameter/minDiameter);
+			var min = 0;
+			function renderAt(fraction) {
+// 				var scale = 1.0 + (maxDiameter/minDiameter) * fraction;
+				var scale = min + (max - min)*fraction;
+				scale = Math.max(0.00001, scale);
+				proxy.style.transform = proxy.style.webkitTransform = proxy.style.msTransform = 'translate(-50%, -50%) scale(' + (1/scale) + ')';
+				wrapper.style.transform = wrapper.style.webkitTransform = wrapper.style.msTransform = 'translate(-50%, -50%) scale(' + scale + ')';
+			}
+			
+			var effect = new KeyframeEffect(element, [], {
+				duration: options.duration || 500,
+				delay: options.delay || 0,
+				fill: options.fill || 'none',
+				easing: options.easing || 'linear'
+			});
+			
+			/// checking for null is the correct/specced way of doing things, but right now is really buggy (e.g. on .reverse();)
+			effect.onsample = function(fraction, target, effect) {
+				/// Interpolate
+				if(isWrapped && (fraction < 1 && fraction > 0)) // fraction !== null)
+				{
+					renderAt(fraction);
+				}
+				
+				/// Enter
+				if(!isWrapped && (fraction > 0 && fraction < 1)) // fraction !== null)
+				{
+					wrapper.style.left = (element.offsetLeft + element.offsetWidth*.5) + 'px';
+					wrapper.style.top = (element.offsetTop + element.offsetHeight*.5) + 'px';
+					element.style.visibility = 'hidden';
+					if(options.context && options.context.from.nextSibling) parent.insertBefore(wrapper, options.context.from.nextSibling);
+					else parent.appendChild(wrapper);
+					
+					isWrapped = true;
+					
+					renderAt(fraction);
+				}
+				
+				/// Exit
+				else if(isWrapped && !(fraction > 0 && fraction < 1)) // fraction === null)
+				{
+					parent.removeChild(wrapper);
+					element.style.visibility = null;
+					isWrapped = false;
+				}
+			};
+			return effect;
 		},
 		
 		/// Play multiple animations at once but each element has their animation delayed based on distance to an origin position
@@ -356,19 +435,31 @@ var Choreo = {
 			/// Get all them rects
 			var rects = Array.prototype.map.call(elements, function(element) { return element.getBoundingClientRect() });
 			
-			/// Figure out the big bounding box covering the rects
-			var bounds = { left: rects[0].left, top: rects[0].top, right: rects[0].right, bottom: rects[0].bottom, width: 0, height: 0 };
-			rects.forEach(function(rect) {
-				if(rect.left < bounds.left) bounds.left = rect.left;
-				if(rect.right > bounds.right) bounds.right = rect.right;
-				if(rect.top < bounds.top) bounds.top = rect.top;
-				if(rect.bottom > bounds.bottom) bounds.bottom = rect.bottom;
-			});
-			bounds.width = bounds.right - bounds.left;
-			bounds.height = bounds.bottom - bounds.top;
+			var origin;
+			/// A relative string definition (e.g. "left top")
+			if(!options.origin || typeof options.origin === 'string')
+			{
+				/// Figure out the big bounding box covering the rects
+				var bounds = { left: rects[0].left, top: rects[0].top, right: rects[0].right, bottom: rects[0].bottom, width: 0, height: 0 };
+				rects.forEach(function(rect) {
+					if(rect.left < bounds.left) bounds.left = rect.left;
+					if(rect.right > bounds.right) bounds.right = rect.right;
+					if(rect.top < bounds.top) bounds.top = rect.top;
+					if(rect.bottom > bounds.bottom) bounds.bottom = rect.bottom;
+				});
+				bounds.width = bounds.right - bounds.left;
+				bounds.height = bounds.bottom - bounds.top;
+				
+				/// Parse the origin from the user and apply it with the bounding box
+				origin = Choreo.Utility.parseCoordinate(options.origin || 'left top', bounds);
+			}
 			
-			/// Parse the origin from the user and apply it with the bounding box
-			var origin = Choreo.Utility.parseCoordinate(options.origin || 'left top', bounds);
+			else if(typeof options.origin === 'object' && 'x' in options.origin && 'y' in options.origin)
+			{
+				/// Take the origin as-is
+				origin = options.origin;
+			}
+			
 			
 			/// Loop through the elements and build the animations into a group
 			var group = [];
@@ -376,23 +467,32 @@ var Choreo = {
 			{
 				var element = elements[iter];
 				var rect = rects[iter];
+				var delta = {
+					x: (rect.left+rect.width*.5) - origin.x,
+					y: (rect.top+rect.height*.5) - origin.y
+				}
 				var distance = Math.sqrt(
-					Math.pow(origin.x - (rect.left+rect.width*.5), 2) +
-					Math.pow(origin.y - (rect.top+rect.height*.5), 2)
+					Math.pow(delta.x, 2) +
+					Math.pow(delta.y, 2)
 				);
 				
+				var frames = [];
 				if(typeof keyframes === 'function')
 				{
-					keyframes = keyframes.call({
+					frames = keyframes.call({
 						element: element,
 						rect: rect,
+						delta: delta,
 						distance: distance
 					}, options);
 				}
 				
-				if(keyframes && keyframes.length)
+				else frames = keyframes;
+				
+				
+				if(frames.length)
 				{
-					group.push(new KeyframeEffect(element, keyframes, {
+					group.push(new KeyframeEffect(element, frames, {
 						delay: (options.delay || 0) + (distance / 4 * (options.stepMult || 1)),
 						duration: options.duration,
 						fill: options.fill,
@@ -441,11 +541,26 @@ var Choreo = {
 			
 			/// Finally return our animation
 			return new GroupEffect(effects, { fill: 'both' });
+		},
+		
+
+		quadraticCurve: function(a, b, c, iterations, fn) {
+			var frames = [];
+			for(var iter = 0; iter <= iterations; ++iter)
+			{
+				var t = iter/iterations;
+				var x = (1 - t) * (1 - t) * a.x + 2 * (1 - t) * t * b.x + t * t * c.x;
+				var y = (1 - t) * (1 - t) * a.y + 2 * (1 - t) * t * b.y + t * t * c.y;
+				frames.push(fn? fn(x, y, t) : { transform: ['translate(', x, 'px, ', y, 'px)'].join('') });
+			}
+			return frames;
 		}
+		
 		
 		/*
 			Any other useful animation-creating functions?
-			I would like to compile all the common techniques and tricks here
+			I would like to compile all the techniques and tricks here
+			That would allow people to make the amazing stuff that people come up with
 		*/
 	},
 	
@@ -546,14 +661,14 @@ var Choreo = {
 			for (var i = 1; i < x.length; i++) if(x[i] != y[i]) return [x[i - 1], y[i - 1]];
 		},
 		
-		/// Find closest element (that is not itself) that clips the view, e.g. has overflow hidden, otherwise return document root <html>
+		/// Find closest element (that is not itself) that clips the view, e.g. has overflow hidden, otherwise return document
 		closestClip: function closestClippingAncestor(node) {
 			while(node && (node = node.parentNode) && node instanceof Element && node !== document.body) {
 				if(getComputedStyle(node).overflow !== 'visible')
 					return node;
 			}
 			
-			return document.documentElement;
+			return document.body;
 		}
 	},
 	
@@ -586,6 +701,276 @@ var Choreo = {
 	events: {
 		preprocess: []
 	},
+	
+	
+	/// Creating shaped 'Reveal' animations is more complex and difficult than I'd prefer.
+	/// Usually I would try to create very lightweight and highly composable constructs, but as
+	/// this animation technique requires some heavy lifting this is the most optimal method at this time.
+	/// (A 'reveal' animation is what I call the growing/shrinking circle animations)
+	Revealer: (function() {
+		function Revealer (element, options) {
+			this.element = element;
+			this.view = options.view || Choreo.Utility.closestClip(element);
+			this.parent = options.parent || this.view;
+			this.viewRect = this.view.getBoundingClientRect();
+			var elementRect = element.getBoundingClientRect();
+// 			var target = this.target = element.cloneNode(true);
+// 			target.style.position = 'absolute';
+// 			target.style.top = '50%';
+// 			target.style.left = '50%';
+// 			target.style.width = elementRect.width + 'px';
+// 			target.style.height = elementRect.height + 'px';
+// 			target.style.margin = '0';
+// 			target.style.willChange = 'transform';
+			
+			var wrapper = this.wrapper = document.createElement('div');
+			wrapper.style.position = 'absolute';
+			wrapper.style.willChange = 'transform';
+// 			wrapper.appendChild(target);
+			
+			this.calculateShape(options);
+			
+			if(options.from === 'nothing') this.startScale = this.minScale; else
+			if(options.from === 'normal') this.startScale = this.midScale; else
+			if(options.from === 'everything') this.startScale = this.maxScale;
+			else this.startScale = this.midScale;
+			
+			if(options.to === 'nothing') this.endScale = this.minScale; else
+			if(options.to === 'normal') this.endScale = this.midScale; else
+			if(options.to === 'everything') this.endScale = this.maxScale;
+			else this.endScale = this.maxScale;
+			
+// 			Hmm, lets see, how does the API look?
+// 			new Choreo.Revealer(element, {
+// 				shape: 'circle',
+// 				from: 'normal',
+// 				to: 'everything'
+// 			});
+			
+			this.createEffect(options);
+		}
+		
+		Revealer.prototype.calculateShape = function (options) {
+			var shape = options.shape || 'circle';
+			if(shape === 'circle') // Wrap target element with circle
+			{
+				var elementRect = this.element.getBoundingClientRect();
+				var minDiameter = (function(element, offset) {
+					var width = element.width + Math.abs(offset.x);
+					var height = element.height + Math.abs(offset.y);
+					return Math.sqrt(Math.pow(width, 2) + Math.pow(height, 2));
+				})(elementRect, options.position || { x: 0, y: 0 });
+				var maxDiameter = (function(view, element) {
+					var width = view.width + Math.abs(element.x - view.x);
+					var height = view.height + Math.abs(element.y - view.y);
+					return Math.sqrt(Math.pow(width, 2) + Math.pow(height, 2));
+				})({
+					x: this.viewRect.left + this.viewRect.width*.5,
+					y: this.viewRect.top + this.viewRect.height*.5,
+					width: this.viewRect.width,
+					height: this.viewRect.height
+				}, options.position || {
+					x: elementRect.left + elementRect.width*.5,
+					y: elementRect.top + elementRect.height*.5
+				});
+				
+				var wrapper = this.wrapper.style;
+				wrapper.overflow = 'hidden';
+				wrapper.background = options.background || 'none';
+				wrapper.borderRadius = '50%';
+				wrapper.border = options.border || '';
+				wrapper.width = wrapper.height = minDiameter + 'px';
+				
+				this.maxScale = 1 + (maxDiameter/minDiameter);
+				this.midScale = 1;
+				this.minScale = 0;
+			}
+			
+			/// else if(shape === 'ellipse') // Wrap to cover element with an ellipse (same ratio as target)
+			/// else if(shape === 'square') // Wrap to cover element from widest width/height (or contain? Hmm.)
+			/// else if(shape === 'rectangle') // Wrap target element exactly from width/height
+			
+			else throw new Error('Unknown shape defined for Choreo.Revealer!', shape);
+		};
+		
+		Revealer.prototype.createEffect = function (options) {
+			var effect = this.effect = new KeyframeEffect(this.element, [], {
+				duration: options.duration || 500,
+				delay: options.delay || 0,
+				fill: options.fill || 'none',
+				easing: options.easing || 'linear'
+			});
+			
+			/// Checking for null is the correct/specced way of doing things, but right now is really buggy (e.g. on .reverse();)
+			/// So I am entering/exiting reveal animations via checking if the fraction is between 0.0 and 1.0 or not
+			var isWrapped = false;
+			var Revealer = this;
+			effect.onsample = function(fraction, target, effect) {
+				/// Interpolate
+				if(isWrapped && (fraction < 1 && fraction > 0)) // fraction !== null)
+				{
+					Revealer.renderAt(fraction);
+				}
+				
+				/// Enter
+				if(!isWrapped && (fraction > 0 && fraction < 1)) // fraction !== null)
+				{
+					var rect = Revealer.element.getBoundingClientRect();
+					var target = Revealer.target = Revealer.element.cloneNode(true);
+					target.style.position = 'absolute';
+					target.style.top = target.style.left = '50%';
+					target.style.width = rect.width + 'px';
+					target.style.height = rect.height + 'px';
+					target.style.margin = '0';
+					target.style.willChange = 'transform';
+					
+					Revealer.wrapper.appendChild(target);
+					
+					
+					if(options.position)
+					{
+						Revealer.wrapper.style.left = options.position.x + 'px';
+						Revealer.wrapper.style.top = options.position.y + 'px';
+// 						var rect = Revealer.element.getBoundingClientRect();
+						Revealer.targetOffset = {
+							x: (rect.left + rect.width*.5) - options.position.x,
+							y: (rect.top + rect.height*.5) - options.position.y
+						};
+// 						Revealer.target.style.left = ((elementRect.left + elementRect.width*.5) - options.position.x) + 'px';
+// 						Revealer.target.style.top = ((elementRect.top + elementRect.height*.5) - options.position.y) + 'px';
+// 						Revealer.target.style.left = ((Revealer.element.offsetLeft + Revealer.element.offsetWidth*.5) - options.position.x) + 'px;';
+// 						Revealer.target.style.top = ((Revealer.element.offsetTop + Revealer.element.offsetHeight*.5) - options.position.y) + 'px;';
+					}
+					
+					else
+					{
+						Revealer.wrapper.style.left = (Revealer.element.offsetLeft + Revealer.element.offsetWidth*.5) + 'px';
+						Revealer.wrapper.style.top = (Revealer.element.offsetTop + Revealer.element.offsetHeight*.5) + 'px';
+					}
+
+					Revealer.element.style.visibility = 'hidden';
+					if(options.context && options.context.from.nextSibling) parent.insertBefore(Revealer.wrapper, options.context.from.nextSibling);
+					else Revealer.parent.appendChild(Revealer.wrapper);
+					
+					isWrapped = true;
+					
+					Revealer.renderAt(fraction);
+				}
+				
+				/// Exit
+				else if(isWrapped && !(fraction > 0 && fraction < 1)) // fraction === null)
+				{
+					Revealer.parent.removeChild(Revealer.wrapper);
+					Revealer.element.style.visibility = null;
+					isWrapped = false;
+				}
+			};
+			
+			return effect;
+		};
+		
+		Revealer.prototype.setScale = function (scale) {
+			scale = Math.max(0.00001, scale);
+			var target = this.target.style;
+			var wrapper = this.wrapper.style;
+			target.transform = target.webkitTransform = target.msTransform = 'translate(-50%, -50%) scale(' + (1/scale) + ')' + (this.targetOffset? ' translate(' + this.targetOffset.x + 'px, ' + this.targetOffset.y + 'px)' : '');
+			wrapper.transform = wrapper.webkitTransform = wrapper.msTransform = 'translate(-50%, -50%) scale(' + scale + ')';
+		};
+		
+		/// Set the animation state of the Revealer
+		Revealer.prototype.renderAt = function (fraction) {
+			var scale = this.startScale + (this.endScale - this.startScale) * fraction;
+			this.setScale(scale);
+		}
+		
+		
+		return Revealer;
+	})(),
+	
+	/*
+			var isWrapped = false;
+			var view = Choreo.Utility.closestClip(element);
+			var parent = options.context? options.context.from.parentNode : view;
+			var viewRect = view.getBoundingClientRect();
+			var elementRect = element.getBoundingClientRect();
+			var proxy = element.cloneNode(true);
+			var wrapper = document.createElement('div');
+			proxy.style.position = 'absolute';
+			proxy.style.top = '50%';
+			proxy.style.left = '50%';
+			proxy.style.width = elementRect.width + 'px';
+			proxy.style.height = elementRect.height + 'px';
+			proxy.style.margin = '0';
+			proxy.style.willChange = 'transform';
+			wrapper.style.position = 'absolute';
+			if(options.occlude) wrapper.style.overflow = 'hidden';
+			wrapper.style.borderRadius = '50%';
+			if(options.background) wrapper.style.background = options.background;
+			wrapper.style.willChange = 'transform';
+			wrapper.appendChild(proxy);
+			
+			var minDiameter = Math.sqrt(elementRect.width*elementRect.width + elementRect.height*elementRect.height);
+			var maxDiameter = (function(a, b) {
+				var width = a.width + 2*Math.abs((a.left + a.width*.5) - (b.left + b.width*.5));
+				var height = a.height + 2*Math.abs((a.top + a.height*.5) - (b.top + b.height*.5));
+				var centerToEdge = Math.sqrt(width*width + height*height);
+				return centerToEdge;
+			})(viewRect, elementRect);
+			wrapper.style.width = wrapper.style.height = minDiameter + 'px';
+			
+			var max = 1 + (maxDiameter/minDiameter);
+			var min = 0;
+			function renderAt(fraction) {
+// 				var scale = 1.0 + (maxDiameter/minDiameter) * fraction;
+				var scale = min + (max - min)*fraction;
+				scale = Math.max(0.00001, scale);
+				proxy.style.transform = proxy.style.webkitTransform = proxy.style.msTransform = 'translate(-50%, -50%) scale(' + (1/scale) + ')';
+				wrapper.style.transform = wrapper.style.webkitTransform = wrapper.style.msTransform = 'translate(-50%, -50%) scale(' + scale + ')';
+			}
+			
+			var effect = new KeyframeEffect(element, [], {
+				duration: options.duration || 500,
+				delay: options.delay || 0,
+				fill: options.fill || 'none',
+				easing: options.easing || 'linear'
+			});
+			
+			/// checking for null is the correct/specced way of doing things, but right now is really buggy (e.g. on .reverse();)
+			effect.onsample = function(fraction, target, effect) {
+				/// Interpolate
+				if(isWrapped && (fraction < 1 && fraction > 0)) // fraction !== null)
+				{
+					renderAt(fraction);
+				}
+				
+				/// Enter
+				if(!isWrapped && (fraction > 0 && fraction < 1)) // fraction !== null)
+				{
+					wrapper.style.left = (element.offsetLeft + element.offsetWidth*.5) + 'px';
+					wrapper.style.top = (element.offsetTop + element.offsetHeight*.5) + 'px';
+					element.style.visibility = 'hidden';
+					if(options.context && options.context.from.nextSibling) parent.insertBefore(wrapper, options.context.from.nextSibling);
+					else parent.appendChild(wrapper);
+					
+					isWrapped = true;
+					
+					renderAt(fraction);
+				}
+				
+				/// Exit
+				else if(isWrapped && !(fraction > 0 && fraction < 1)) // fraction === null)
+				{
+					parent.removeChild(wrapper);
+					element.style.visibility = null;
+					isWrapped = false;
+				}
+			};
+			return effect;
+	*/
+	
+	
+	
+	
 	
 	
 	/// This namespace will contain the effort to bring us physics-based animation

@@ -28,11 +28,10 @@ Choreo.on('postprocess', function(player) {
 	localStorage.setItem(signature, ++counter);
 	
 	var maxViews = 100; // How many times an animations need to play (including reversible) to hit max speed
-	var maxSpeed = 0.6; // Animations can be at least 60% faster
+	var maxSpeed = 0.4; // Animations can be at least 60% faster
 	var speed = 1 - (maxSpeed * Math.sin((Math.min(counter, maxViews) / maxViews) * Math.PI * .5));
 	if(speed > 0.0) player.playbackRate /= speed;
 });
-
 
 
 
@@ -43,8 +42,11 @@ Choreo.on('postprocess', function(player) {
 
 
 
+
 /// Setup our default preset
 Choreo.define('default', Choreo.Preset.fade({ duration: 200 }));
+// This will be applied to all state transitions where none is manually defined
+
 
 
 /// Define animation for our introduction view
@@ -102,7 +104,38 @@ Choreo.define('article.home', {
 
 
 
-Choreo.define({ from: 'article.home', to: 'article:not(.home)' }, {
+
+/*Choreo.define({ from: 'article.home', to: 'article.faq' }, {
+	constructor: function(cache) {
+		cache.tapped = this.from.querySelector('.tile' + this._to.replace('article', ''));
+		
+		return new GroupEffect([
+			Choreo.Animate.reveal(cache.tapped, {
+				context: this, // If context is provided, the reveal will be placed between the two views
+				direction: 'grow',
+				duration: 1000,
+				background: 'hsl(0, 0%, 80%)'
+			}),
+			
+			Choreo.Animate.fade(this.from, 'out', {
+				duration: 0,
+				delay: 1000,
+				fill: 'both'
+			}),
+			
+			new KeyframeEffect(this.to, [
+				{ opacity: 0 },
+				{ opacity: 1 }
+			], { duration: 200, delay: 800, fill: 'both' })
+		], { fill: 'both' });
+	}
+});*/
+
+
+
+
+
+Choreo.define({ from: 'article.home', to: 'article.view' }, {
 	constructor: function(cache) {
 		cache.nav = this.from.querySelector('nav');
 		
@@ -115,7 +148,8 @@ Choreo.define({ from: 'article.home', to: 'article:not(.home)' }, {
 		cache.fromHeader = this.from.querySelector('header');
 		cache.toHeader = this.to.querySelector('header');
 		
-		this.to.style.top = window.scrollTop() + 'px';
+		cache.scrollAt = window.scrollTop();
+		this.to.style.top = cache.scrollAt + 'px';
 		
 		var tappedRect = cache.tapped.getBoundingClientRect();
 		var headerRect = cache.toHeader.getBoundingClientRect();
@@ -170,14 +204,14 @@ Choreo.define({ from: 'article.home', to: 'article:not(.home)' }, {
 	},
 	
 	exit: function(cache) {
-		var relativeScroll = this.to.getBoundingClientRect().top;
+		var scrollNow = window.scrollTop();
 		
 		cache.tapped.style.color = null;
 		this.to.style.opacity = null;
 		this.to.style.top = null;
 		this.to.style.zIndex = null;
 		
-		window.scrollTop(-relativeScroll);
+		window.scrollTop(scrollNow - cache.scrollAt);
 	}
 });
 
@@ -255,6 +289,8 @@ tapDat(document, function isDataView(event) {
 });
 
 
+
+
 function onCloseBanner(event) {
 	if(!event.target.matches('aside.banner button.close')) return;
 	event.preventDefault();
@@ -286,6 +322,7 @@ window.disqus_shortname = 'choreography';
 	function loadComments(event) {
 		event.preventDefault();
 		this.removeEventListener('click', loadComments);
+		this.parentNode.removeChild(this);
 		
 		window.disqus_identifier = 'article.what';
 		window.disqus_title = 'Choreography.js';

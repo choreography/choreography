@@ -33,3 +33,9 @@ img { border: 0; }
 sup, sub { line-height: 0; vertical-align: middle; font-size: 58.3%; position: relative; }
 sup { top: -0.33333em; }
 sub { top: 0.33333em; }
+
+
+/* Custom CSS below for foundational layout*/
+* { box-sizing: border-box }
+html, body { height: 100%; width: 100%; background: hsl(0, 0%, 80%); color: hsl(0, 0%, 0%); -webkit-text-size-adjust: none; }
+body { position: relative; overflow-x: hidden; overflow-y: scroll; padding: 0; margin: 0 auto; }

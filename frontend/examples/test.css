@@ -1,0 +1,90 @@
+
+
+article.view {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	width: 100%;
+	min-height: 100%;
+}
+
+
+
+/*
+	Buttons
+*/
+
+button.rounded {
+	display: inline-block;
+	width: 64px;
+	height: 64px;
+	padding: 6px;
+	border-radius: 100%;
+	background: hsl(215, 100%, 50%);
+	text-align: center;
+	color: hsl(215, 100%, 95%);
+	font: 18px/1 Arial, sans-serif;
+	transition: 120ms ease-out;
+}
+
+button.rounded:hover { transform: scale(1.02); opacity: 0.8 }
+button.rounded:active { transform: scale(0.99); opacity: 0.6 }
+
+button.flat {
+	display: inline-block;
+	padding: 8px 16px;
+	margin: 6px;
+	background: hsl(260, 60%, 50%);
+	text-align: center;
+	color: hsl(180, 0%, 100%);
+	font: 20px/1 Arial, sans-serif;
+}
+
+
+
+/*
+	A
+*/
+
+article.a header {
+	margin: 120px 0 0;
+	border-bottom: 60px solid hsl(125, 40%, 60%);
+	text-align: center;
+	color: hsl(0, 0%, 100%);
+	font: 60px/1 Arial, sans-serif;
+}
+
+article.a nav {
+	margin: 120px 0;
+	text-align: center;
+	font-size: 0;
+}
+
+article.a button.rounded {
+	margin: 0 6px;
+}
+
+
+
+/*
+	B
+*/
+
+article.b header {
+	padding: 120px 0 20px;
+	background: hsl(215, 100%, 50%);
+	text-align: center;
+	color: hsl(0, 0%, 100%);
+	font: 48px/1 Arial, sans-serif;
+}
+
+article.b nav {
+	padding: 120px 0;
+	text-align: center;
+	font-size: 0;
+}
+
+
+
+
