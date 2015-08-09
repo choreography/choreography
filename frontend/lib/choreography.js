@@ -714,19 +714,18 @@ var Choreo = {
 			this.parent = options.parent || this.view;
 			this.viewRect = this.view.getBoundingClientRect();
 			var elementRect = element.getBoundingClientRect();
-// 			var target = this.target = element.cloneNode(true);
-// 			target.style.position = 'absolute';
-// 			target.style.top = '50%';
-// 			target.style.left = '50%';
-// 			target.style.width = elementRect.width + 'px';
-// 			target.style.height = elementRect.height + 'px';
-// 			target.style.margin = '0';
-// 			target.style.willChange = 'transform';
+			var target = this.target = element.cloneNode(true);
+			target.style.position = 'absolute';
+			target.style.top = target.style.left = '50%';
+			target.style.width = elementRect.width + 'px';
+			target.style.height = elementRect.height + 'px';
+			target.style.margin = '0';
+			target.style.willChange = 'transform';
 			
 			var wrapper = this.wrapper = document.createElement('div');
 			wrapper.style.position = 'absolute';
 			wrapper.style.willChange = 'transform';
-// 			wrapper.appendChild(target);
+			wrapper.appendChild(target);
 			
 			this.calculateShape(options);
 			
@@ -815,23 +814,9 @@ var Choreo = {
 				/// Enter
 				if(!isWrapped && (fraction > 0 && fraction < 1)) // fraction !== null)
 				{
-					var rect = Revealer.element.getBoundingClientRect();
-					var target = Revealer.target = Revealer.element.cloneNode(true);
-					target.style.position = 'absolute';
-					target.style.top = target.style.left = '50%';
-					target.style.width = rect.width + 'px';
-					target.style.height = rect.height + 'px';
-					target.style.margin = '0';
-					target.style.willChange = 'transform';
-					
-					Revealer.wrapper.appendChild(target);
-					
-					
 					if(options.position)
 					{
-						Revealer.wrapper.style.left = options.position.x + 'px';
-						Revealer.wrapper.style.top = options.position.y + 'px';
-// 						var rect = Revealer.element.getBoundingClientRect();
+						var rect = Revealer.element.getBoundingClientRect();
 						Revealer.targetOffset = {
 							x: (rect.left + rect.width*.5) - options.position.x,
 							y: (rect.top + rect.height*.5) - options.position.y

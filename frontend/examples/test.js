@@ -67,17 +67,17 @@ Choreo.define({ from: 'article.a', to: 'article.b' }, function() {
 		new KeyframeEffect(this.to, [
 			{ opacity: 0 },
 			{ opacity: 1 }
-		], { duration: 200, delay: 300, fill: 'both' }),
+		], { duration: 0, delay: 400, fill: 'both' }),
 		
 		(new Choreo.Revealer(toHeader, {
 			shape: 'circle',
 			from: 'nothing',
 			to: 'normal',
-			position: headerCenter,
+// 			position: headerCenter,
 			parent: this.to,
 			
 			duration: 600,
-			delay: 300,
+			delay: 400,
 			easing: 'ease-in-out'
 		})).effect
 		
