@@ -170,11 +170,11 @@ var Choreo = {
 		}
 		
 		// TODO: 'onfinish' attribute has been removed from W3C spec, switch to 'finished' Promise (wait for polyfill/browsers to catch up first a bit)
-		player.onfinish = function() {
+		player.finished.then(function() {
 			if(transition.exit) transition.exit.call(context, cache);
 			Choreo.Exit.call(player, from, to);
 			player.cancel();
-		};
+		});
 		
 		Choreo.trigger('postprocess', context, player);
 		return player;
