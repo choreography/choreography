@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="initial-scale=1, width=device-width">
+	
+	<!-- Stylesheets -->
+	<style>
+		body {
+			margin: 0;
+			background: hsl(215, 0%, 90%);
+		}
+		
+		article.view {
+			position: absolute;
+			top: 0;
+			left: 0;
+			right: 0;
+			bottom: 0;
+		}
+		
+		header {
+			padding: 40px;
+			background: hsl(215, 100%, 50%);
+			color: white;
+			font: 60px/1.1 Arial, sans-serif;
+		}
+		
+		nav {
+			padding: 40px;
+		}
+
+		button {
+			border: none;
+			padding: 10px 40px;
+			outline: none;
+			background: hsl(215, 100%, 50%);
+			color: white;
+			font: 24px/1.1 Arial, sans-serif;
+			cursor: pointer;
+		}
+		
+		button.forward,
+		article.b header {
+			background: hsl(120, 40%, 50%);
+		}
+		
+		article.b header {
+			padding: 80px 40px;
+		}
+		
+	</style>
+
+
+<body>
+	<!-- Markup -->
+	<article class="view a">
+		<header>
+			Title
+		</header>
+		<nav>
+			<button class="forward">Forward</button>
+		</nav>
+	</article>
+	
+	<article class="view b" style="display: none">
+		<header>
+			Title
+		</header>
+		<nav>
+			<button class="reverse">Reverse</button>
+		</nav>
+	</article>
+
+
+
+	<!-- Scripts -->
+	<script src="../lib/web-animations-next.js"></script>
+	<script>
+		var ancestor = document.body;
+		var from = document.querySelector('article.a');
+		var to = document.querySelector('article.b');
+		var forward = document.querySelector('button.forward');
+		var reverse = document.querySelector('button.reverse');
+		
+		function buildStateTransition() {
+			var tappedRect = forward.getBoundingClientRect();
+			var headerRect = to.querySelector('header').getBoundingClientRect();
+			var delta = {
+				left: (headerRect.left + headerRect.width*.5) - (tappedRect.left + tappedRect.width*.5),
+				top: (headerRect.top + headerRect.height*.5) - (tappedRect.top + tappedRect.height*.5),
+				width: headerRect.width / tappedRect.width,
+				height: headerRect.height/  tappedRect.height
+			};
+			
+			return new GroupEffect([
+				new KeyframeEffect(from.querySelector('header'), [
+					{ opacity: 1 },
+					{ opacity: 0 }
+				], {
+					duration: 300,
+					fill: 'both'
+				}),
+				
+				new KeyframeEffect(forward, [
+					{ offset: 0, color: 'white', transform: 'translate3d(0px, 0px, 0px) scale(1, 1)' },
+					{ offset: 0.1, color: 'transparent', transform: 'translate3d(0px, 0px, 0px) scale(1, 1)' },
+					{ offset: 1, color: 'transparent', transform: 'translate3d(' + delta.left + 'px, ' + delta.top + 'px, 0px) scale(' + delta.width + ', ' + delta.height + ')' }
+				], {
+					duration: 800,
+					fill: 'both',
+					easing: 'cubic-bezier(.74,-0.21,.45,1.09)'
+				}),
+				
+				new KeyframeEffect(to, [
+					{ opacity: 0 },
+					{ opacity: 1 }
+				], {
+					delay: 700,
+					duration: 300,
+					fill: 'both'
+				})
+			], { fill: 'both' });
+		}
+		
+		function preAnim() {
+			/// Get bounding boxes and prep layouts
+			var fbox = from.getBoundingClientRect();
+			var tbox = to.getBoundingClientRect();
+			var abox = ancestor.getBoundingClientRect();
+			
+			/// Share layout coordinates
+			to.style.position = from.style.position = 'absolute';
+			to.style.top = from.style.top = (fbox.top - abox.top) + 'px';
+			to.style.left = from.style.left = (fbox.left - abox.left) + 'px';
+			from.style.width = fbox.width + 'px';
+			from.style.height = fbox.height + 'px';
+			to.style.width = tbox.width + 'px';
+			to.style.height = tbox.height + 'px';
+			
+			ancestor.style.position = 'relative';
+			ancestor.style.width = abox.width + 'px';
+			ancestor.style.height = abox.height + 'px';
+		}
+
+		function postAnim() {
+			to.style.position = '';
+			to.style.top = '';
+			to.style.left = '';
+			to.style.width = '';
+			to.style.height = '';
+			
+			from.style.position = '';
+			from.style.top = '';
+			from.style.left = '';
+			from.style.width = '';
+			from.style.height = '';
+			
+			ancestor.style.position = '';
+			ancestor.style.width = '';
+			ancestor.style.height = '';
+		}
+		
+		
+		forward.addEventListener('click', function(event) {
+			to.style.display = '';
+			preAnim();
+			var animation = buildStateTransition();
+			var player = document.timeline.play(animation);
+			
+			player.onfinish = function() {
+				postAnim();
+				from.style.display = 'none';
+				player.cancel();
+			};
+		});
+		
+		reverse.addEventListener('click', function(event) {
+			from.style.display = '';
+			preAnim();
+			var animation = buildStateTransition();
+			var player = document.timeline.play(animation);
+			
+			player.onfinish = function() {
+				postAnim();
+				to.style.display = 'none';
+				player.cancel();
+			};
+			
+			player.currentTime = player.effect.activeDuration;
+			player.reverse();
+		});
+	</script>

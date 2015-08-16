@@ -24,10 +24,12 @@
 
 var Choreo = {
 	/// Properties
-	
-	// This controls whether view transitions should happen at all, or just simply do instant view flipping
-	isDisabled: false,
-	
+	Settings: {
+		// This controls whether view transitions should happen at all, or just simply do instant view flipping
+		isDisabled: false,
+		
+		noLayout: 'inline'
+	},
 	
 	/// Here is where you start defining view transition animations
 	/*
@@ -85,7 +87,7 @@ var Choreo = {
 		if(typeof to === 'string') to = document.querySelector(to);
 		if(typeof from === 'string') from = document.querySelector(from);
 		
-		if(this.isDisabled)
+		if(Choreo.Settings.isDisabled)
 		{
 			Choreo.Entry(from, to);
 			Choreo.Exit(from, to);
@@ -239,8 +241,8 @@ var Choreo = {
 			// Need to fix ancestor as per above...
 			
 			/// Allow layout and then calculate it
-			from.style.display = '';
-			to.style.display = '';
+			if(Choreo.Settings.noLayout === 'inline') to.style.display = ''; else
+			if(Choreo.Settings.noLayout === 'class') to.classList.remove('no-layout');
 			
 			/// Get bounding boxes and prep layouts
 			var fbox = from.getBoundingClientRect();
@@ -265,7 +267,8 @@ var Choreo = {
 		else if(to)
 		{
 			/// Allow layout
-			to.style.display = '';
+			if(Choreo.Settings.noLayout === 'inline') to.style.display = ''; else
+			if(Choreo.Settings.noLayout === 'class') to.classList.remove('no-layout');
 		}
 	},
 	
@@ -278,9 +281,12 @@ var Choreo = {
 		// TODO: Make reversable for cancelations, e.g. swap front with back?
 		
 		// Make front permanent, hide back
-// 		if(front) front.style.display = '';
-		if(back) back.style.display = 'none';
-		
+		if(back)
+		{
+			if(Choreo.Settings.noLayout === 'inline') back.style.display = 'none'; else
+			if(Choreo.Settings.noLayout === 'class') back.classList.add('no-layout');
+		}
+
 		if(front && back)
 		{
 			front.style.position = '';

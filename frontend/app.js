@@ -1,337 +1,252 @@
-/// We want to be good citizen, check battery usage on the device
-if(navigator.getBattery)
-{
-	navigator.getBattery()
-	.then(function(battery) {
-		/// If the battery level is below a certain percent, lets switch off view transitions entirely
-		if(battery.level < 0.2)
-		{
-			Choreo.isDisabled = true;
-			
-			var banner = document.createElement('aside');
-			banner.className = 'banner low-battery';
-			banner.innerHTML = '<button class="close">x</button>We have detected that your battery is below 20% and therefore optimised the web app for efficiency';
-			document.body.appendChild(banner);
-		}
+document.addEventListener('DOMContentLoaded', function lastUserVisit (event) {
+	var lastVisit = +sessionStorage.getItem('last-visit') || +localStorage.getItem('last-visit');
+	localStorage.setItem('last-visit', +new Date);
+	sessionStorage.setItem('last-visit', lastVisit);
+	if(!lastVisit) return;
+	
+	function timeSince(date) {
+		var seconds = Math.floor((new Date() - date) / 1000);
+		var intervalType;
+
+		var interval = Math.floor(seconds / 31536000);
+		if (interval >= 1) intervalType = 'year';
+		else {
+			interval = Math.floor(seconds / 2592000);
+			if (interval >= 1) intervalType = 'month';
+			else {
+				interval = Math.floor(seconds / 86400);
+				if (interval >= 1) intervalType = 'day';
+				else {
+					interval = Math.floor(seconds / 3600);
+					if (interval >= 1) intervalType = "hour";
+					else {
+						interval = Math.floor(seconds / 60);
+						if (interval >= 1) intervalType = "minute";
+						else {
+							interval = seconds;
+							intervalType = "second";
+		}	}	}	}	}
 		
-		/// We could also alternatively load a specialised stylesheet for low battery usage (E.g. disable text-shadow, box-shadow and filters)
-	});
-	
-	/// Note: By the time the promise kicks in, the view transition for the home screen may have happened already
-}
+		if (interval > 1 || interval === 0) intervalType += 's';
+		return [interval, intervalType].join(' ');
+	}
 
-
-/// We also don't want to annoy the user with the hundredth animation, lets cut it shorter each time
-Choreo.on('postprocess', function(player) {
-	var signature = ['Choreo(', this._from || 'null', ', ', this._to || 'null', ')'].join('');
-	var counter = localStorage.getItem(signature) || 0;
-	localStorage.setItem(signature, ++counter);
-	
-	var maxViews = 100; // How many times an animations need to play (including reversible) to hit max speed
-	var maxSpeed = 0.4; // Animations can be at least 60% faster
-	var speed = 1 - (maxSpeed * Math.sin((Math.min(counter, maxViews) / maxViews) * Math.PI * .5));
-	if(speed > 0.0) player.playbackRate /= speed;
+	var span = document.querySelector('span.last-visit');
+	span.textContent = ['Last visit was', timeSince(lastVisit), 'ago'].join(' ');
+	span.title = 'How long ago your last session with the website was. This is only to help YOU and is calculated and stored ONLY client-side with localStorage & sessionStorage.';
 });
 
 
-
-/// The ability above to hack/control Choreography globally might prove really useful
-/// E.g. providing some accessibility features for the user:
-/// http://www.alphr.com/apple/1001057/why-apple-s-next-operating-systems-are-already-making-users-sick
-
-
-
-
-
-/// Setup our default preset
-Choreo.define('default', Choreo.Preset.fade({ duration: 200 }));
-// This will be applied to all state transitions where none is manually defined
-
-
-
-/// Define animation for our introduction view
-Choreo.define('article.home', {
-	/// Just before anything happens at all, lets do some setup
-	pre: function(cache) {
-		cache.header = this.to.querySelector('header');
-		cache.content = this.to.querySelector('main');
-		cache.nav = this.to.querySelector('nav');
-		this.to.style.opacity = 0;
-	},
+document.addEventListener('DOMContentLoaded', function SlackInviter (event) {
+	/// Code adapted from the Slackin js
+	if (!document.body.getBoundingClientRect || !document.body.querySelectorAll || !window.postMessage) return;
 	
-	/// Creating our animation using the Web Animation API
-	constructor: function(cache) {
-		return new GroupEffect([
-			Choreo.Animate.fade(this.to, 'in', {
-				duration: 300,
-				fill: 'both'
-			}),
-			
-			new KeyframeEffect(cache.header, [
-				{ opacity: 0, transform: 'translate3d(0px, -30px, 0px)' },
-				{ opacity: .2, transform: 'translate3d(0px, -15px, 0px)' },
-				{ opacity: 1, transform: 'translate3d(0px, 0px, 0px)' }
-			], {
-				delay: 250,
-				duration: 500,
-				fill: 'both',
-				easing: Choreo.Physics.easeOut(200)
-			}),
-			
-			Choreo.Animate.step(cache.nav.children, [
-				{ opacity: 0, transform: 'scale(0.9) translateZ(0px)' },
-				{ opacity: 1, transform: 'scale(1) translateZ(0px)' }
-			], {
-				origin: 'left top',
-				delay: 700,
-				duration: 500,
-				stepMult: 2,
-				fill: 'both',
-				easing: 'cubic-bezier(.11,.57,.54,1.4)'
-			})
-		]);
-	},
+	function search(){
+		var buttons = document.querySelectorAll('a.slack');
+		if(buttons) Array.prototype.forEach.call(buttons, replace);
+	}
 	
-	/// Exit is mainly for doing cleanup when having finished an animation
-	exit: function(cache) {
-		this.to.style.opacity = null;
+	function replace(button){
+		var parent = button.parentNode;
+		if(!parent) return;
+		
+		var iframe = document.createElement('iframe');
+		var iframePath = '/iframe?large';
+		iframe.src = 'https://choreography-slackin.herokuapp.com' + iframePath;
+		iframe.style.borderWidth = 0;
+		iframe.className = '__slackin';
+		
+		iframe.style.width = '171px';
+		iframe.style.height = '30px';
+		iframe.style.visibility = 'hidden';
+		
+		button.visibility = 'hidden';
+
+		parent.insertBefore(iframe, button);
+		parent.removeChild(button);
+		iframe.onload = function() { setup(iframe); };
 	}
-});
-
-
-/// They are really truly just CSS selectors, so we can use commas for multiple selections
-// Choreo.define({ from: 'article.home', to: 'article.why, article.docs, article.downoad' }, Choreo.Preset.fade({ duration: 200 }));
-
-
-
-
-/*Choreo.define({ from: 'article.home', to: 'article.faq' }, {
-	constructor: function(cache) {
-		cache.tapped = this.from.querySelector('.tile' + this._to.replace('article', ''));
-		
-		return new GroupEffect([
-			Choreo.Animate.reveal(cache.tapped, {
-				context: this, // If context is provided, the reveal will be placed between the two views
-				direction: 'grow',
-				duration: 1000,
-				background: 'hsl(0, 0%, 80%)'
-			}),
+	
+	function setup(iframe){
+		var id = Math.random() * (1 << 24) | 0;
+		iframe.contentWindow.postMessage('slackin:' + id, '*');
+		window.addEventListener('message', function(e){
+			if ('slackin-click:' + id  == e.data) showDialog(iframe);
 			
-			Choreo.Animate.fade(this.from, 'out', {
-				duration: 0,
-				delay: 1000,
-				fill: 'both'
-			}),
-			
-			new KeyframeEffect(this.to, [
-				{ opacity: 0 },
-				{ opacity: 1 }
-			], { duration: 200, delay: 800, fill: 'both' })
-		], { fill: 'both' });
+			// update width
+			var wp = 'slackin-width:' + id + ':';
+			if (wp == e.data.substr(0, wp.length)) {
+				var width = e.data.substr(wp.length);
+				iframe.style.width = width + 'px';
+				iframe.style.visibility = 'visible';
+			}
+		});
 	}
-});*/
-
-
-
-
-
-Choreo.define({ from: 'article.home', to: 'article.view' }, {
-	constructor: function(cache) {
-		cache.nav = this.from.querySelector('nav');
+	
+	var showing = false;
+	function showDialog(iframe){
+		if (showing) return;
+		showing = true;
 		
-		// Need to come up with a better strategy/workflow of shared element identification (tapped = shared element)
-		// Generally I leave it up to you, the user, instead of Choreography trying to do weird stuff itself
-		cache.tapped = this.from.querySelector('.tile' + this._to.replace('article', ''));
+		// container div
+		var div = document.createElement('div');
+		div.className = '__slackin';
+		div.style.border = '1px solid #D6D6D6';
+		div.style.padding = '0';
+		div.style.margin = '0';
+		div.style.lineHeight = '0';
+		div.style.backgroundColor = '#FAFAFA';
+		div.style.width = '250px';
+		div.style.height = '124px';
+		div.style.position = 'absolute';
+		div.style.left = '-10000px';
+		div.style.top = '-10000px';
+		div.style.borderRadius = '4px';
+		div.style.padding = '4px';
+		div.style.boxSizing = 'content-box';
 		
-		cache.tiles = Array.prototype.slice.call(this.from.querySelectorAll('.tile'));
-		cache.tiles.splice(cache.tiles.indexOf(cache.tapped), 1);
-		cache.fromHeader = this.from.querySelector('header');
-		cache.toHeader = this.to.querySelector('header');
-		
-		cache.scrollAt = window.scrollTop();
-		this.to.style.top = cache.scrollAt + 'px';
-		
-		var tappedRect = cache.tapped.getBoundingClientRect();
-		var headerRect = cache.toHeader.getBoundingClientRect();
-		var delta = {
-			left: (headerRect.left + headerRect.width*.5) - (tappedRect.left + tappedRect.width*.5),
-			top: (headerRect.top + headerRect.height*.5) - (tappedRect.top + tappedRect.height*.5),
-			width: headerRect.width / tappedRect.width,
-			height: headerRect.height/  tappedRect.height
+		// new iframe
+		var ni = document.createElement('iframe');
+		ni.className = '__slackin';
+		ni.style.width = '250px';
+		ni.style.height = '124px';
+		ni.style.borderWidth = 0;
+		ni.src = iframe.src.replace(/\?.*/, '') + '/dialog';
+		ni.onload = function(){
+			window.addEventListener('scroll', dposition);
+			window.addEventListener('resize', dposition);
+			position();
 		};
 		
-		this.to.style.opacity = 0;
-		this.to.style.zIndex = 2;
-		cache.tapped.style.color = 'transparent';
+		// arrows
+		var a1 = document.createElement('div');
+		var a2 = document.createElement('div');
+		[a1, a2].forEach(function(a){
+			a.style.border = 'solid transparent';
+			a.style.pointerEvents = 'none';
+			a.style.width = '0';
+			a.style.height = '0';
+			a.style.margin = '0';
+			a.style.padding = '0';
+			a.style.position = 'absolute';
+			a.style.display = 'inline';
+		});
 		
-		return new GroupEffect([
-			new KeyframeEffect(this.to, [
-				{ opacity: 0 },
-				{ opacity: 1 }
-			], {
-				delay: 600,
-				duration: 300,
-				fill: 'both'
-			}),
-			
-			Choreo.Animate.fade(cache.fromHeader, 'out', {
-				duration: 100,
-				fill: 'both'
-			}),
-			
-			Choreo.Animate.evade(cache.tapped, cache.tiles, function(element) {
-				return new KeyframeEffect(element, [
-					{ opacity: 1, transform: 'translate3d(0px, 0px, 0px) scale(1)' },
-					{ opacity: 0, transform: 'translate3d(' + (this.direction.x*40) + 'px, ' + (this.direction.y*40) + 'px, 0px) scale(0.9)'}
-				], {
-					duration: 300,
-					fill: 'both',
-					easing: 'ease-in'
-				});
-			}),
-			
-			new KeyframeEffect(cache.tapped, [
-				{ transform: 'translate3d(0px, 0px, 0px) scale(1, 1)' },
-				{ transform: 'translate3d(' + delta.left + 'px, ' + delta.top + 'px, 0px) scale(' + delta.width + ', ' + delta.height + ')' }
-			], {
-// 				delay: 200,
-				duration: 600,
-				fill: 'both',
-				easing: 'cubic-bezier(.74,-0.21,.45,1.09)'
-// 				easing: Choreo.Physics.easeOut(150)
-			})
-		], { fill: 'both' });
-	},
-	
-	exit: function(cache) {
-		var scrollNow = window.scrollTop();
+		a1.style.borderColor = 'rgba(214, 214, 214, 0)';
+		a2.style.borderColor = 'rgba(250, 250, 250, 0)';
 		
-		cache.tapped.style.color = null;
-		this.to.style.opacity = null;
-		this.to.style.top = null;
-		this.to.style.zIndex = null;
+		a1.style.borderWidth = '7px';
+		a1.style.marginLeft = '-7px';
+		a2.style.borderWidth = '6px';
+		a2.style.marginLeft = '-6px';
 		
-		window.scrollTop(scrollNow - cache.scrollAt);
+		// append
+		div.appendChild(a1);
+		div.appendChild(a2);
+		div.appendChild(ni);
+		document.body.appendChild(div);
+		
+		function position(){
+			[div, a1, a2].forEach(function(el){
+				el.style.left = '';
+				el.style.right = '';
+				el.style.bottom = '';
+				el.style.top = '';
+			});
+
+			var divPos = div.getBoundingClientRect();
+			var iframePos = iframe.getBoundingClientRect();
+			var divHeight = divPos.height + 9; // arrow height
+
+			var st = document.body.scrollTop;
+			var sl = document.body.scrollLeft;
+			var iw = window.innerWidth;
+			var ih = window.innerHeight;
+			var iframeTop = iframePos.top + st;
+			var iframeLeft = iframePos.left + sl;
+
+			// position vertically / arrows
+			if (st + iframePos.bottom + divHeight > st + ih) {
+				div.style.top = (iframeTop - divHeight) + 'px';
+				a1.style.top = a2.style.top = '100%';
+
+				a1.style.borderBottomColor = 'rgba(214, 214, 214, 0)';
+				a2.style.borderBottomColor = 'rgba(250, 250, 250, 0)';
+				a1.style.borderTopColor = '#d6d6d6';
+				a2.style.borderTopColor = '#fafafa';
+			} else {
+				div.style.top = (iframeTop + iframePos.height + 9) + 'px';
+				a1.style.bottom = a2.style.bottom = '100%';
+
+				a1.style.borderTopColor = 'rgba(214, 214, 214, 0)';
+				a2.style.borderTopColor = 'rgba(250, 250, 250, 0)';
+				a1.style.borderBottomColor = '#d6d6d6';
+				a2.style.borderBottomColor = '#fafafa';
+			}
+
+			// position horizontally
+			var left = iframePos.left
+			+ Math.round(iframePos.width / 2)
+			- Math.round(divPos.width / 2);
+			if (left < sl) left = sl;
+			if (left + divPos.width > sl + iw) {
+				left = sl + iw - divPos.width;
+			}
+			div.style.left = left + 'px';
+
+			a1.style.left =
+			a2.style.left = (iframeLeft - left + Math.round(iframePos.width / 2)) + 'px';
+		}
+
+		// debounced positionining
+		var timer;
+		function dposition(){
+			clearTimeout(timer);
+			timer = setTimeout(position, 100);
+		}
+
+		function hide(){
+			showing = false;
+			window.removeEventListener('scroll', dposition);
+			window.removeEventListener('resize', dposition);
+			document.body.removeChild(div);
+			document.documentElement.removeEventListener('click', click, true);
+		}
+
+		function click(ev){
+			if ('__slackin' != ev.target.className) {
+				hide();
+			}
+		}
+
+		document.documentElement.addEventListener('click', click, true);
 	}
+	
+	search();
 });
 
 
 
 
+Choreo.Settings.noLayout = 'class'; // class-based hiding of views
 
-var currentView = null;
-var router = Grapnel.listen({
-	'': function(req) { Choreo.graph(currentView, currentView = 'article.home') },
-	'/examples': function() { Choreo.graph(currentView, currentView = 'article.examples') },
-	'/docs': function() { Choreo.graph(currentView, currentView = 'article.docs') },
-	'/tools': function() { Choreo.graph(currentView, currentView = 'article.tools') },
-	'/faq': function() { Choreo.graph(currentView, currentView = 'article.faq') },
-	'/articles/choreography.js': function(req) { Choreo.graph(currentView, currentView = 'article.what') }
-
-});
-
-
-if(window.ga)
-{
-	router.on('navigate', function(event){
-		ga('send', 'pageview', {
-			page: this.fragment.get()
+Choreo.define('article.intro', function() {
+	var gloriousHeader = this.to.querySelector('header.glorious');
+	var navItems = this.to.querySelectorAll('header.glorious, a.flat, iframe.__slackin, section.blurb, footer.curious');
+	
+	return Choreo.Animate.evade(gloriousHeader, navItems, function(element) {
+		return new KeyframeEffect(element, [
+			{ opacity: 0, transform: 'translate3d(' + (this.direction.x*20) + 'px, ' + (this.direction.y*20) + 'px, 0px) scale(0.9)' },
+			{ opacity: 1, transform: 'translate3d(0px, 0px, 0px) scale(1)' }
+		], {
+			delay: this.distance*1.2,
+			duration: 400,
+			fill: 'both',
+			easing: 'cubic-bezier(.33,.55,.46,1.14)'
 		});
 	});
-}
-
-
-
-/// Kick off application with our first view
-// Choreo.graph('article.home');
-
-
-
-
-/// Catching page-to-page interaction
-
-tapDat(document, function isDataView(event) {
-	var element = event.target.closest('a, button');
-	return element && element.matches('[data-path]');
-}, function onDataView(event) {
-	event.preventDefault();
-	
-	var element = event.target.closest('a, button');
-	element.classList.add('active');
-	element.blur();
-	
-	router.navigate(element.dataset.path);
-	
-	element.classList.remove('active');
-	
-
-/*
-	var view = element.dataset.path;
-	
-	// Google Analytics present? Then track the pageview
-	if(window.ga)
-	{
-		var element = document.querySelector(view);
-		var title = element.querySelector('h1');
-		title = title? title.textContent : null;
-		
-		ga('send', 'pageview', {
-			'page': '/' + view.replace('article.', ''),
-			'title': title || ''
-		});
-	}
-	
-	Choreo.graph(currentView, view);
-	currentView = view;
-	element.classList.remove('active');
-	element.blur();
-*/
 });
 
-
-
-
-function onCloseBanner(event) {
-	if(!event.target.matches('aside.banner button.close')) return;
-	event.preventDefault();
-	
-	var banner = event.target.closest('aside.banner');
-	banner.parentNode.removeChild(banner);
-}
-
-document.addEventListener('mouseup', onCloseBanner);
-document.addEventListener('touchend', onCloseBanner);
-
-
-
-
-
-/// Utility function to set/get the scrollTop cross-browser (read: webkit is buggy)
-/// see: https://dev.opera.com/articles/fixing-the-scrolltop-bug/
-/// (I tried to use document.scrollingElement, but had no luck? Is it because I have `overflow-y: scroll;` explicitly on <body>?)
-window.scrollTop = function (top) {
-	if(arguments.length) { document.documentElement.scrollTop = top; document.body.scrollTop = top; }
-	else return document.documentElement.scrollTop || document.body.scrollTop;
-};
-
-
-
-window.disqus_shortname = 'choreography';
-
-(function() {
-	function loadComments(event) {
-		event.preventDefault();
-		this.removeEventListener('click', loadComments);
-		this.parentNode.removeChild(this);
-		
-		window.disqus_identifier = 'article.what';
-		window.disqus_title = 'Choreography.js';
-// 		window.disqus_url = ;
-		
-		var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
-		dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
-		(document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
-	}
-	
-	document.querySelector('#disqus_thread button.comments').addEventListener('click', loadComments);
-})();
+document.addEventListener('DOMContentLoaded', function(event) {
+	Choreo.graph('article.intro');
+});

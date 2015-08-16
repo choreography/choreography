@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="initial-scale=1, width=device-width">
+	<title>Choreography.js</title>
+	<script type="application/ld+json">
+		{
+			"@context": "http://schema.org/",
+			"@type": "SoftwareSourceCode",
+			"name": "Choreography.js",
+			"alternateName": "Choreography",
+			"programmingLanguage": "JavaScript",
+			"codeRepository": "https://github.com/Martin-Pitt/choreography",
+			"description": "Choreography.js is foremost a library for defining and managing state transitions using native APIs. It is also a practical resource on learning Web Animations.",
+			"license": "MIT License",
+			"creator": {
+				"@type": "Person",
+				"name": "Martin Pitt",
+				"jobTitle": "Frontend Developer",
+				"url": "http://martinpitt.co.uk"
+			},
+			"sameAs": "https://github.com/Martin-Pitt/choreography"
+		}
+	</script>
+	
+	<!-- Stylesheets -->
+	<link rel="stylesheet" href="/shared/fonts/lato.css">
+	<link rel="stylesheet" href="/shared/css/unstyle.css">
+	<link rel="stylesheet" href="css/layout.css">
+	<link rel="stylesheet" href="css/specific.css">
+
+
+<body>
+	<!-- Markup -->
+	<article class="view home" style="display: none">
+		<header>
+			<!-- Ought to have a logo & use it as a goto-homepage link -->
+			<h1>This is Choreography.js,</h1>
+			<p>a library for  <abbr title="State transitions in this context is the transition between two HTML elements which is your UI">state transitions</abbr>  using native APIs.</p>
+		</header>
+		<main>
+			<nav>
+				<section class="tile blurb">
+					<p>
+						“Choreography.js is a library for helping you manage animations between states.<br>
+						<br>
+						Additionally, it is an exercise in Motion Design, together with examples and tools, to teach you the <a class="inline" target="_blank" href="https://w3c.github.io/web-animations/">Web Animations API</a>.”
+					</p>
+				</section>
+				<button class="tile what wide article" data-path="/articles/choreography.js">
+					<h4>Choreography.js</h4>
+					<p>Develop snappy Web Apps</p>
+					<span class="author">Martin Pitt</span>
+					<time datetime="2015-07">July, 2015</time>
+					<span class="disqus-comment-count" data-disqus-identifier="article.what"></span>
+				</button>
+				<a class="tile examples disabled" tabindex=-1 href="/examples/">
+					<h4>Examples</h4>
+					<p>Learn by practice, not just theory</p>
+				</a>
+				<a class="tile docs disabled" tabindex=-1 href="/docs/">
+					<h4>Documentation</h4>
+					<p>Usage, API, tutorials, …</p>
+				</a>
+				<a class="tile tools disabled" tabindex=-1 href="/tools/">
+					<h4>Tools</h4>
+					<p>Benefit from great developer tooling</p>
+				</a>
+				<a class="tile download disabled" tabindex=-1 target="_blank" download href="http://example.com">
+					<h4>Download</h4>
+					<p>All you need to start using this</p>
+				</a>
+				<a class="tile slack" target="_blank" href="https://choreography-slackin.herokuapp.com">
+					<h4><span>Choreography Slack</h4>
+					<p>Ask, learn &amp; collaborate with others</p>
+					<!--
+						I need to split this tile in two and add a Code of Conduct policy
+						I will probably fork the following policy as it seems well put and is exactly what I appreciate:
+							https://github.com/frontendlondon-slack/Code-Of-Conduct
+					-->
+				</a>
+				<button class="tile faq" data-path="/faq">
+					<h4>FAQ</h4>
+					<p>Got questions? Confused?</p>
+				</button>
+			</nav>
+		</main>
+	</article>
+	
+	<article class="view what" style="display: none">
+		<nav class="app">
+			<button class="flat" data-path="">Back</button>
+		</nav>
+		<header class="primary">
+			<div class="wrap">
+				<h1>Choreography.js</h1>
+				<span class="author">By Martin Pitt</span>
+				<time datetime="2015-07">July, 2015</time>
+				<span class="disqus-comment-count" data-disqus-identifier="article.what">…</span>
+				<span class="status" title="Still working on this; Subject to change">[DRAFT]</span>
+			</div>
+		</header>
+		<main class="article">
+			<p>
+				Why should you animate the UI?
+			</p>
+			<ol>
+				<li>Animations make apps feel faster
+				<li>Animating between two states helps users understand the flow
+				<li>They inform and shape attention
+				<li>Reduces effort to understand which reduces cognitive load
+				<!-- Any other great points? -->
+			</ol>
+			<br>
+			<p>
+				Just as subtle Typography can change the context and our mood so can Motion Design.
+			</p>
+			<p>
+				Even large organisations like IBM have recognised this and made animations part of their <a class="inline" target="_blank" href="http://www.ibm.com/design/language/framework/animation/fundamentals">design guidelines</a>.
+			</p>
+			<p>
+				It is typical to think of animations as "Cool", "Delightful", etc.  But this should be in no way the main purpose of transitional interfaces (animations between screens, pages and states). Animations should be about improving usability.
+			</p>
+			
+			<h2>Web Animations</h2>
+			<p>
+				The web has been fraught with challenges, with rendering inconsistencies and differences in devices and circumstances of the user.
+			</p>
+			<p>
+				Typically to achieve complex &amp; choreographed animations you give up control to a framework or learn how a heavyweight library works.  However, these closed ecosystems are not really in the spirit of the web.
+				To add insult to injury the frameworks often treat animations as a second class citizen and the libraries have unusual conventions beyond normal HTML/CSS or questionable commercial influences.
+			</p>
+			<p>
+				Thankfully the upcoming Web Animations API is a huge step forward,  equipped with the <a class="inline" target="_blank" href="https://github.com/web-animations/web-animations-js">polyfill</a> we can start taking advantage of it.
+			</p>
+			<p>
+				<a class="inline" target="_blank" href="https://w3c.github.io/web-animations/">Web Animations API specification</a> (or WAAPI), <q>[…] defines a model for synchronization and timing of changes to the presentation of a Web page.</q>
+			</p>
+			
+			<h2>Choreography.js</h2>
+			<p>
+				With classes and transitions we have learned to embrace JavaScript as a great way to trigger states and coordinate with CSS-based rendering.
+			</p>
+			<p>
+				This library comes about as a lightweight way to manage animations.
+				As your actually using standardised APIs to create your animations,
+				your not locked in and can take advantage of the wider web community.
+			</p>
+			
+			<h2>Hackable</h2>
+			<p>
+				Animations shouldn't be just simply a ‘fire and forget’ thing. They ought to respond to the context and conditions of the user or device.
+			</p>
+			<p>
+				Thus, Choreography is intended to be hackable and allow for exploration of ground breaking innovations for the web.
+			</p>
+			<p>
+				One interesting examples is on this website.  When the device battery level is below 20%  all Choreography animations are disabled globally.
+			</p>
+			<p>
+				Second hackable idea I have implemented is the following:
+			</p>
+			<ul>
+				<li>Every state transition increments a counter
+				<li>The next time the transition is played: the animation is run x% faster
+			</ul>
+			<p>
+				Why?  If you have viewed an animation for the 100th time,  I'm sure you'd understand it quite well already. Therefore, speed it up!
+			</p>
+			<p>
+				Our user is a human,  they learn and adapt,  our animations should respect their time.
+			</p>
+			<p>
+				Got any other hackable ideas to try?  Please submit them!
+			</p>
+			
+			
+			<!--
+				Should probably work on a curated list of WAAPI related resources?
+				
+				Articles/Slides:
+					https://developers.google.com/web/updates/2014/05/Web-Animations---element-animate-is-now-in-Chrome-36?hl=en
+					https://medium.com/@ryan_brownhill/crafting-easing-curves-for-user-interfaces-34f39e1b4a43
+					https://medium.com/@pasql/transitional-interfaces-926eb80d64e3
+					https://medium.com/@sophie_paxtonUX/stop-gratuitous-ui-animation-9ece9aa9eb97
+					http://motionographer.com/2015/07/06/user-interface-design-why-motion-matters/
+					http://www.slideshare.net/CrowChick/a-brief-introduction-to-animation-ui-and-the-visual-cortex
+					https://medium.com/@flyosity/your-spring-animations-are-bad-and-it-s-probably-apple-s-fault-784932e51733
+					https://medium.com/yummygum-journal/enhance-your-user-experience-with-animated-transitions-a30267ca376c
+					http://blog.percolatestudio.com/design/animation-timing-guidelines/
+					https://medium.com/elepath-exports/spatial-interfaces-886bccc5d1e9
+					https://medium.com/@becca_u/the-principles-of-ux-choreography-69c91c2cbc2a
+				
+				Videos:
+					UI Animation Reviews: Web Navigation https://vimeo.com/121803800
+					http://aneventapart.com/news/post/putting-your-ui-in-motion-with-css-by-val-head-an-event-apart-video
+					Off The Record http://screenings.io/posts/nw76LJmLeYmsXtinH/off-the-record
+					Steven Fabre: Invisible Animation https://www.youtube.com/watch?t=613&v=XlaX2TumAPI
+					Benjamin De Cock - Let's move! https://www.youtube.com/watch?v=J6wUmQDQBkw
+				
+				News:
+					Podcast about Motion Design http://www.motionandmeaning.io/
+					Web Animation Weekly http://us1.campaign-archive1.com/home/?u=0a8f219cf8284562f91a26ee9&id=d60f6683d2
+					UI Animation Dispatch http://valhead.us2.list-manage2.com/subscribe?u=6fbaddc8c1fce7588d1a35cb2&id=8f4de2c2e5
+					http://motionographer.com/
+				
+				Books:
+					Designing Interface Animations http://rosenfeldmedia.com/books/designing-interface-animations/
+					The Animator's Survival Kit http://www.amazon.com/Animators-Survival-Kit-Principles-Classical/dp/086547897X
+				
+				Inspirations:
+					https://instagram.com/gifux/
+					http://capptivate.co/
+					http://uigifs.com/
+					http://uimovement.com/
+				
+				
+				There was a bit of renaming in the WAAPI recently, so some sources may be slightly out of date:
+					https://developers.google.com/web/updates/2015/04/web-animations-naming
+			-->
+		</main>
+		<aside class="disqus">
+			<div id="disqus_thread">
+				<button class="flat comments">Load Comments</button>
+			</div>
+		</aside>
+	</article>
+	
+	<article class="view examples" style="display: none">
+		<header class="primary">
+			<nav class="app">
+				<button class="flat" data-path="">Back</button>
+			</nav>
+			<h1>Examples</h1>
+		</header>
+		<main class="content">
+			<ul>
+				<li>This website<br>
+					https://github.com/Martin-Pitt/choreography/tree/master
+				<li>…
+				<li>…
+			</ul>
+		</main>
+	</article>
+	
+	<article class="view docs" style="display: none">
+		<header class="primary">
+			<nav class="app">
+				<button class="flat" data-path="">Back</button>
+			</nav>
+			<h1>Documentation</h1>
+		</header>
+		<main class="content">
+			
+		</main>
+	</article>
+	
+	<article class="view download" style="display: none">
+		<header class="primary">
+			<nav class="app">
+				<button class="flat" data-path="">Back</button>
+			</nav>
+			<h1>Download</h1>
+		</header>
+		<main class="content">
+			
+		</main>
+	</article>
+	
+	
+	<article class="view faq" style="display: none">
+		<header class="primary">
+			<nav class="app">
+				<button class="flat" data-path="">Back</button>
+			</nav>
+			<h1>FAQ</h1>
+		</header>
+		<main class="content">
+			<dl>
+				<dt><h3>Will this be Open Source?</h3></dt>
+				<dd>
+					Hell yes.
+				</dd>
+				<dd>
+					With MIT License.
+				</dd>
+				
+				<dt><h3>How do I get it?</h3></dt>
+				<dd>
+					Still working out the kinks & API.  So no stable version has been defined yet.
+				</dd>
+				<dd>
+					The GitHub repo is open to the public:
+					<a class="inline" target="_blank" href="https://github.com/Martin-Pitt/Choreography">github.com/Martin-Pitt/Choreography</a>
+				</dd>
+				
+				<dt><h3>Can I use this in production?</h3></dt>
+				<dd>
+					This library is still in early development and not ready for production apps yet.
+				</dd>
+				<dd>
+					Natively the Web Animations API does not have much browser support currently:<br>
+					<a class="inline" href="http://caniuse.com/#feat=web-animation">caniuse.com/#feat=web-animation</a><br>
+				</dd>
+				<dd>
+					There is a polyfill available though, which does seem to have effective cross-brower support: <a class="inline" href="https://github.com/web-animations/web-animations-js">github.com/web-animations/web-animations-js</a><br>
+					I recommend using the web-animations-next build.
+				</dd>
+				
+				<dt><h3>How do I contribute?</h3></dt>
+				<dd>
+					Start by joining the <a class="inline" target="_blank" href="https://choreography-slackin.herokuapp.com">Choreography Slack</a>.
+				</dd>
+				<dd>
+					Spread the message.<br>
+					I'd really appreciate it if more people were aware of it, it gives more opportunities for people to critique, discuss and learn.
+				</dd>
+				<dd>
+					Unsure as to how people can contribute by code though.<br>
+					I love <a class="inline" href="http://openopensource.org/">openopensource.org</a> - but is that the right fit?
+				</dd>
+				
+				<!-- <dt><h2>What do the versions mean?</h2></dt>
+				<dd>
+					‹major›.‹minor›<br>
+					<br>
+					Where:<br>
+					  <b>major</b> is incremented upon changes of the API contract, e.g. function arguments and major behavioural changes<br>
+					  <b>minor</b> is incremented upon minor changes, such as fixes and improvements
+				</dd>
+				
+				Well that is the plan at least, not using versions right now as I need to compile API into a doc.
+				Then I can have a full overview of the library and establish versioning from that point on.
+				
+				-->
+			</dl>
+		</main>
+	</article>
+	
+	
+	
+	
+	<!-- Deferred Assets -->
+	<script defer src="/shared/js/web-animations-next.js"></script>
+	<script defer src="/shared/js/poly.js"></script>
+	<script defer src="/shared/js/choreography.js"></script>
+	<script defer src="lib/utilities.js"></script>
+	<script defer src="lib/grapnel.js"></script>
+	<script defer src="app.js"></script>
+	<script>
+		(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+		(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+		m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+		})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+		ga('create', 'UA-65315940-1', 'auto');
+		ga('send', 'pageview');
+	</script>
+	<script defer async src="https://choreography.disqus.com/count.js"></script>
