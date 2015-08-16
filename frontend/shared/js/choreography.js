@@ -546,7 +546,7 @@ var Choreo = {
 			}
 			
 			/// Finally return our animation
-			return new GroupEffect(effects, { fill: 'both' });
+			return new GroupEffect(effects);
 		},
 		
 
