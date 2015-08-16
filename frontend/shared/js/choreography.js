@@ -192,9 +192,9 @@ var Choreo = {
 				from = null;
 			}
 			
-				var iter = this.list.length;
-				while(iter-->0) {
-					var transit = this.list[iter];
+			var iter = this.list.length;
+			while(iter-->0) {
+				var transit = this.list[iter];
 				if((to? to.matches(transit.to) : to === transit.to) && (from? from.matches(transit.from) : from === transit.from)) return transit.transition;
 			}
 			
