@@ -4,7 +4,9 @@ header.glorious {
 	text-align: center;
 }
 
-header.glorious p { margin-bottom: 0 }
+header.glorious p {
+	margin-bottom: 0
+}
 
 nav.delightful {
 	padding: 20px;
@@ -13,16 +15,7 @@ nav.delightful {
 	white-space: nowrap;
 }
 
-button.flat {
-	padding: 10px 20px;
-	border-radius: 4px;
-	margin: 6px;
-	background: hsl(140, 40%, 50%);
-	color: white;
-	font: 20px/1 Lato;
-	vertical-align: top;
-}
-
+button.flat,
 a.flat {
 	display: inline-block;
 	padding: 10px 20px;
@@ -32,6 +25,11 @@ a.flat {
 	color: white;
 	font: 20px/1 Lato;
 	vertical-align: top;
+}
+
+button.flat:active,
+a.flat:active {
+	background: hsl(140, 40%, 30%)
 }
 
 a.flat:after {
@@ -49,9 +47,15 @@ a.flat:after {
 a.flat:after { visibility: hidden }
 a.flat:hover:after { visibility: initial }
 
+button.flat.disabled,
+a.flat.disabled {
+	-webkit-filter: grayscale(.7);
+	filter: grayscale(.7);
+	opacity: 0.7;
+	pointer-events: none;
+}
 
-iframe.__slackin { margin: 11px 6px }
-div.__slackin iframe.__slackin { margin: 0 }
+
 
 
 @media only screen and (max-width: 700px) { button.flat, a.flat { padding: 15px 30px } }
@@ -64,7 +68,9 @@ section.blurb {
 }
 
 
-article.modal { background: hsla(0, 0%, 70%, 0.9) }
+article.modal {
+	background: hsla(0, 0%, 70%, 0.9)
+}
 
 section.dialog {
 	padding: 30px;
@@ -73,7 +79,9 @@ section.dialog {
 }
 
 
-article.intro { padding-bottom: 40px }
+article.intro {
+	padding-bottom: 40px
+}
 
 footer.curious {
 	position: absolute;
@@ -88,12 +96,52 @@ footer.curious {
 
 
 
+article.external {
+	background: white;
+}
 
 
 
+/*
+	Slack
+*/
 
+iframe.__slackin { margin: 11px 6px }
+div.__slackin iframe.__slackin { margin: 0 }
+div.__slackin {
+	position: absolute;
+	left: -10000px;
+	top: -10000px;
+	box-sizing: content-box;
+	width: 250px;
+	height: 124px;
+	border-radius: 4px;
+	padding: 4px;
+	border: 1px solid #D6D6D6;
+	margin: 0;
+	background-color: #FAFAFA;
+	line-height: 0;
+}
 
+div.__slackin div.arrow {
+	position: absolute;
+	display: inline;
+	width: 0;
+	height: 0;
+	padding: 0;
+	border: solid transparent;
+	margin: 0;
+	pointer-events: none;
+}
 
+div.__slackin div.arrow:nth-child(1) {
+	border-width: 7px;
+	border-color: rgba(214, 214, 214, 0);
+	margin-left: -7px;
+}
 
-
-
+div.__slackin div.arrow:nth-child(2) {
+	border-color: rgba(250, 250, 250, 0);
+	border-width: 6px;
+	margin-left: -6px;
+}

@@ -37,6 +37,8 @@ document.addEventListener('DOMContentLoaded', function lastUserVisit (event) {
 });
 
 
+
+
 document.addEventListener('DOMContentLoaded', function SlackInviter (event) {
 	/// Code adapted from the Slackin js
 	if (!document.body.getBoundingClientRect || !document.body.querySelectorAll || !window.postMessage) return;
@@ -91,19 +93,6 @@ document.addEventListener('DOMContentLoaded', function SlackInviter (event) {
 		// container div
 		var div = document.createElement('div');
 		div.className = '__slackin';
-		div.style.border = '1px solid #D6D6D6';
-		div.style.padding = '0';
-		div.style.margin = '0';
-		div.style.lineHeight = '0';
-		div.style.backgroundColor = '#FAFAFA';
-		div.style.width = '250px';
-		div.style.height = '124px';
-		div.style.position = 'absolute';
-		div.style.left = '-10000px';
-		div.style.top = '-10000px';
-		div.style.borderRadius = '4px';
-		div.style.padding = '4px';
-		div.style.boxSizing = 'content-box';
 		
 		// new iframe
 		var ni = document.createElement('iframe');
@@ -121,24 +110,8 @@ document.addEventListener('DOMContentLoaded', function SlackInviter (event) {
 		// arrows
 		var a1 = document.createElement('div');
 		var a2 = document.createElement('div');
-		[a1, a2].forEach(function(a){
-			a.style.border = 'solid transparent';
-			a.style.pointerEvents = 'none';
-			a.style.width = '0';
-			a.style.height = '0';
-			a.style.margin = '0';
-			a.style.padding = '0';
-			a.style.position = 'absolute';
-			a.style.display = 'inline';
-		});
-		
-		a1.style.borderColor = 'rgba(214, 214, 214, 0)';
-		a2.style.borderColor = 'rgba(250, 250, 250, 0)';
-		
-		a1.style.borderWidth = '7px';
-		a1.style.marginLeft = '-7px';
-		a2.style.borderWidth = '6px';
-		a2.style.marginLeft = '-6px';
+		a1.className = 'arrow';
+		a2.className = 'arrow';
 		
 		// append
 		div.appendChild(a1);
@@ -183,7 +156,7 @@ document.addEventListener('DOMContentLoaded', function SlackInviter (event) {
 				a1.style.borderBottomColor = '#d6d6d6';
 				a2.style.borderBottomColor = '#fafafa';
 			}
-
+			
 			// position horizontally
 			var left = iframePos.left
 			+ Math.round(iframePos.width / 2)
@@ -193,7 +166,7 @@ document.addEventListener('DOMContentLoaded', function SlackInviter (event) {
 				left = sl + iw - divPos.width;
 			}
 			div.style.left = left + 'px';
-
+			
 			a1.style.left =
 			a2.style.left = (iframeLeft - left + Math.round(iframePos.width / 2)) + 'px';
 		}
@@ -230,7 +203,10 @@ document.addEventListener('DOMContentLoaded', function SlackInviter (event) {
 
 Choreo.Settings.noLayout = 'class'; // class-based hiding of views
 
-Choreo.define('article.intro', function() {
+Choreo.define({
+	from: null,
+	to: 'article.intro'
+}, function() {
 	var gloriousHeader = this.to.querySelector('header.glorious');
 	var navItems = this.to.querySelectorAll('header.glorious, a.flat, iframe.__slackin, section.blurb, footer.curious');
 	
@@ -247,6 +223,56 @@ Choreo.define('article.intro', function() {
 	});
 });
 
+Choreo.define({
+	from: 'article.intro',
+	to: 'article.external'
+}, function() {
+	var tapped = this.from.querySelector('.tapped');
+	if(!tapped) return new KeyframeEffect(this.from, [
+		{ opacity: 1 },
+		{ opacity: 0 }
+	], { duration: 250 });
+	
+	var cover = new Choreo.Revealer(tapped, {
+		shape: 'circle',
+		from: 'normal',
+		to: 'everything',
+		background: 'hsl(140, 50%, 100%)',
+		
+		duration: 400,
+		fill: 'both',
+		easing: 'ease-in'
+	});
+	
+	return new GroupEffect([
+		cover.effect,
+		
+		new KeyframeEffect(cover.proxy, [
+			{ opacity: 1 }, { opacity: 0 }
+		], { delay: 300, duration: 100, fill: 'both' }),
+		
+		new KeyframeEffect(this.to, [
+			{ opacity: 0 }, { opacity: 1 }
+		], { duration: 200, delay: 400, fill: 'both' })
+	], { fill: 'both' });
+});
+
+
 document.addEventListener('DOMContentLoaded', function(event) {
 	Choreo.graph('article.intro');
+	
+	document.addEventListener('click', function(event) {
+		if(!(event.target.matches('a[href]') && !event.defaultPrevented)) return;
+		event.preventDefault();
+
+		event.target.classList.add('tapped');
+		var player = Choreo.graph('article.intro', 'article.external');
+		
+		player.finished.then(function() {
+			if('history' in window) history.pushState(null, null, location.pathname);
+			location = event.target.href;
+		});
+	});
 });
+
+

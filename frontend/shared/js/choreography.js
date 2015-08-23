@@ -709,18 +709,18 @@ var Choreo = {
 			this.parent = options.parent || this.view;
 			this.viewRect = this.view.getBoundingClientRect();
 			var elementRect = element.getBoundingClientRect();
-			var target = this.target = element.cloneNode(true);
-			target.style.position = 'absolute';
-			target.style.top = target.style.left = '50%';
-			target.style.width = elementRect.width + 'px';
-			target.style.height = elementRect.height + 'px';
-			target.style.margin = '0';
-			target.style.willChange = 'transform';
+			var proxy = this.proxy = element.cloneNode(true);
+			proxy.style.position = 'absolute';
+			proxy.style.top = proxy.style.left = '50%';
+			proxy.style.width = elementRect.width + 'px';
+			proxy.style.height = elementRect.height + 'px';
+			proxy.style.margin = '0';
+			proxy.style.willChange = 'transform';
 			
 			var wrapper = this.wrapper = document.createElement('div');
 			wrapper.style.position = 'absolute';
 			wrapper.style.willChange = 'transform';
-			wrapper.appendChild(target);
+			wrapper.appendChild(proxy);
 			
 			this.calculateShape(options);
 			
@@ -812,14 +812,14 @@ var Choreo = {
 					if(options.position)
 					{
 						var rect = Revealer.element.getBoundingClientRect();
-						Revealer.targetOffset = {
+						Revealer.proxyOffset = {
 							x: (rect.left + rect.width*.5) - options.position.x,
 							y: (rect.top + rect.height*.5) - options.position.y
 						};
-// 						Revealer.target.style.left = ((elementRect.left + elementRect.width*.5) - options.position.x) + 'px';
-// 						Revealer.target.style.top = ((elementRect.top + elementRect.height*.5) - options.position.y) + 'px';
-// 						Revealer.target.style.left = ((Revealer.element.offsetLeft + Revealer.element.offsetWidth*.5) - options.position.x) + 'px;';
-// 						Revealer.target.style.top = ((Revealer.element.offsetTop + Revealer.element.offsetHeight*.5) - options.position.y) + 'px;';
+// 						Revealer.proxy.style.left = ((elementRect.left + elementRect.width*.5) - options.position.x) + 'px';
+// 						Revealer.proxy.style.top = ((elementRect.top + elementRect.height*.5) - options.position.y) + 'px';
+// 						Revealer.proxy.style.left = ((Revealer.element.offsetLeft + Revealer.element.offsetWidth*.5) - options.position.x) + 'px;';
+// 						Revealer.proxy.style.top = ((Revealer.element.offsetTop + Revealer.element.offsetHeight*.5) - options.position.y) + 'px;';
 					}
 					
 					else
@@ -835,14 +835,27 @@ var Choreo = {
 					isWrapped = true;
 					
 					Revealer.renderAt(fraction);
+					
+					if(target.timing.fill !== 'none')
+					{
+						effect.finished.then(function() {
+							Revealer.parent.removeChild(Revealer.wrapper);
+							Revealer.element.style.visibility = null;
+							isWrapped = false;
+						});
+					}
 				}
 				
 				/// Exit
 				else if(isWrapped && !(fraction > 0 && fraction < 1)) // fraction === null)
 				{
-					Revealer.parent.removeChild(Revealer.wrapper);
-					Revealer.element.style.visibility = null;
-					isWrapped = false;
+					/// TODO: check 'forwards'/'backwards' for fraction 1/0 respectively
+					if(target.timing.fill === 'none')
+					{
+						Revealer.parent.removeChild(Revealer.wrapper);
+						Revealer.element.style.visibility = null;
+						isWrapped = false;
+					}
 				}
 			};
 			
@@ -851,9 +864,9 @@ var Choreo = {
 		
 		Revealer.prototype.setScale = function (scale) {
 			scale = Math.max(0.00001, scale);
-			var target = this.target.style;
+			var proxy = this.proxy.style;
 			var wrapper = this.wrapper.style;
-			target.transform = target.webkitTransform = target.msTransform = 'translate(-50%, -50%) scale(' + (1/scale) + ')' + (this.targetOffset? ' translate(' + this.targetOffset.x + 'px, ' + this.targetOffset.y + 'px)' : '');
+			proxy.transform = proxy.webkitTransform = proxy.msTransform = 'translate(-50%, -50%) scale(' + (1/scale) + ')' + (this.proxyOffset? ' translate(' + this.proxyOffset.x + 'px, ' + this.proxyOffset.y + 'px)' : '');
 			wrapper.transform = wrapper.webkitTransform = wrapper.msTransform = 'translate(-50%, -50%) scale(' + scale + ')';
 		};
 		
@@ -863,92 +876,8 @@ var Choreo = {
 			this.setScale(scale);
 		}
 		
-		
 		return Revealer;
 	})(),
-	
-	/*
-			var isWrapped = false;
-			var view = Choreo.Utility.closestClip(element);
-			var parent = options.context? options.context.from.parentNode : view;
-			var viewRect = view.getBoundingClientRect();
-			var elementRect = element.getBoundingClientRect();
-			var proxy = element.cloneNode(true);
-			var wrapper = document.createElement('div');
-			proxy.style.position = 'absolute';
-			proxy.style.top = '50%';
-			proxy.style.left = '50%';
-			proxy.style.width = elementRect.width + 'px';
-			proxy.style.height = elementRect.height + 'px';
-			proxy.style.margin = '0';
-			proxy.style.willChange = 'transform';
-			wrapper.style.position = 'absolute';
-			if(options.occlude) wrapper.style.overflow = 'hidden';
-			wrapper.style.borderRadius = '50%';
-			if(options.background) wrapper.style.background = options.background;
-			wrapper.style.willChange = 'transform';
-			wrapper.appendChild(proxy);
-			
-			var minDiameter = Math.sqrt(elementRect.width*elementRect.width + elementRect.height*elementRect.height);
-			var maxDiameter = (function(a, b) {
-				var width = a.width + 2*Math.abs((a.left + a.width*.5) - (b.left + b.width*.5));
-				var height = a.height + 2*Math.abs((a.top + a.height*.5) - (b.top + b.height*.5));
-				var centerToEdge = Math.sqrt(width*width + height*height);
-				return centerToEdge;
-			})(viewRect, elementRect);
-			wrapper.style.width = wrapper.style.height = minDiameter + 'px';
-			
-			var max = 1 + (maxDiameter/minDiameter);
-			var min = 0;
-			function renderAt(fraction) {
-// 				var scale = 1.0 + (maxDiameter/minDiameter) * fraction;
-				var scale = min + (max - min)*fraction;
-				scale = Math.max(0.00001, scale);
-				proxy.style.transform = proxy.style.webkitTransform = proxy.style.msTransform = 'translate(-50%, -50%) scale(' + (1/scale) + ')';
-				wrapper.style.transform = wrapper.style.webkitTransform = wrapper.style.msTransform = 'translate(-50%, -50%) scale(' + scale + ')';
-			}
-			
-			var effect = new KeyframeEffect(element, [], {
-				duration: options.duration || 500,
-				delay: options.delay || 0,
-				fill: options.fill || 'none',
-				easing: options.easing || 'linear'
-			});
-			
-			/// checking for null is the correct/specced way of doing things, but right now is really buggy (e.g. on .reverse();)
-			effect.onsample = function(fraction, target, effect) {
-				/// Interpolate
-				if(isWrapped && (fraction < 1 && fraction > 0)) // fraction !== null)
-				{
-					renderAt(fraction);
-				}
-				
-				/// Enter
-				if(!isWrapped && (fraction > 0 && fraction < 1)) // fraction !== null)
-				{
-					wrapper.style.left = (element.offsetLeft + element.offsetWidth*.5) + 'px';
-					wrapper.style.top = (element.offsetTop + element.offsetHeight*.5) + 'px';
-					element.style.visibility = 'hidden';
-					if(options.context && options.context.from.nextSibling) parent.insertBefore(wrapper, options.context.from.nextSibling);
-					else parent.appendChild(wrapper);
-					
-					isWrapped = true;
-					
-					renderAt(fraction);
-				}
-				
-				/// Exit
-				else if(isWrapped && !(fraction > 0 && fraction < 1)) // fraction === null)
-				{
-					parent.removeChild(wrapper);
-					element.style.visibility = null;
-					isWrapped = false;
-				}
-			};
-			return effect;
-	*/
-	
-	
 	
 	
 	
