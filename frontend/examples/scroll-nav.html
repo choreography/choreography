@@ -36,6 +36,12 @@
 	</section>
 	<script>
 		(function navScrollable () {
+			/// First try setting it normally
+			window.scrollTo(0, 60);
+			
+			/// On DOM loaded
+			document.addEventListener('DOMContentLoaded', function() { window.scrollTo(0, 60); }, false);
+			
 			/// On the first scroll we can reset it to below nav (we assume it was the automatic browser scroll)
 			var onFirstScroll = function(event) {
 				document.removeEventListener('scroll', onFirstScroll);
