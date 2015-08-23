@@ -170,7 +170,7 @@ Choreo.define({ from: 'article.home', to: 'article.view' }, {
 				fill: 'both',
 				easing: 'cubic-bezier(.74,-0.21,.45,1.09)'
 			})
-		], { fill: 'both' });
+		]);
 	},
 	
 	exit: function(cache) {
