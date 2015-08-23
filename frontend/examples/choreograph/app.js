@@ -6,7 +6,6 @@ tap('article.a button.rounded', function(event) {
 
 Choreo.define({ from: 'article.a', to: 'article.b' }, function() {
 	var tapped = this.from.querySelector('button.tapped');
-// 	var proxy = Choreo.Utilities.proxy(tapped);
 	var fromHeader = this.from.querySelector('header');
 	var toHeader = this.to.querySelector('header');
 	
