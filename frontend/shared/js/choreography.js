@@ -28,7 +28,8 @@ var Choreo = {
 		// This controls whether view transitions should happen at all, or just simply do instant view flipping
 		isDisabled: false,
 		
-		noLayout: 'inline'
+		noLayout: 'inline',
+		noPaint: 'inline'
 	},
 	
 	/// Here is where you start defining view transition animations
@@ -154,29 +155,91 @@ var Choreo = {
 		var cache = {};
 		if(transition.pre) transition.pre.call(context, cache);
 		
-		Choreo.Entry(context.from, context.to); // (We use from/to of context to respect reversibility)
 		
+		/// Disallow painting first
+		if(Choreo.Settings.noPaint === 'inline')
+			to.style.visibility = 'hidden';
+		
+		else if(Choreo.Settings.noPaint === 'class')
+			to.classList.add('no-paint');
+		
+
+		/// Allow layout for calculation
+		if(Choreo.Settings.noLayout === 'inline')
+			to.style.display = '';
+		
+		else if(Choreo.Settings.noLayout === 'class')
+			to.classList.remove('no-layout');
+		
+		
+		/// Setup DOM
+		Choreo.Entry(context.from, context.to, isReverse);
+		
+		
+		/// Construct animation
 		var animation = (typeof transition === 'function'? transition.call(context, cache): transition.constructor.call(context, cache));
 		// TODO: Test if animation is truthy/valid?
 		
+		/// Allow some processing before it goes anywhere
 		Choreo.trigger('preprocess', context, animation);
 		
-		var player = document.timeline.play(animation);
 		
 		if(isReverse)
 		{
-			player.currentTime = player.effect.activeDuration;
-			player.reverse();
+			/// This should be the correct way to reverse it:
+// 			animation.timing.direction = (animation.timing.direction === 'normal'? 'reverse' : 'normal');
+			
+			/// Another alternative, perhaps safer way would be:
+// 			animation = new GroupEffect([animation], { direction: 'reverse' });
+			
+			/// BUT Timing input for groups are NOT supported yet in the polyfill
+			// Related: https://github.com/web-animations/web-animations-next/issues/401
+			
+			/// So, a hacky way would be to:
+// 			player.currentTime = player.effect.activeDuration;
+// 			player.reverse();
+			/// For the player, but negative playbackRate appears to be erratic and incorrectly arranged
+			// Possibly related: https://github.com/web-animations/web-animations-next/issues/370
+
+			/// Safest for now should be using KeyframeEffect with onsample callback I think
+			/// It is not perfect, rendering glitches are still possible
+			animation = (function(original) {
+				var player = document.timeline.play(original);
+				var duration = player.effect.activeDuration;
+				player.currentTime = duration;
+				
+				var wrapper = new KeyframeEffect(null, [], { duration: duration, fill: 'both', direction: 'reverse' });
+				wrapper.onsample = function(fraction, target, effect) {
+					player.currentTime = fraction * duration;
+					if(fraction === 0) {
+						(window.requestAnimationFrame || window.webkitRequestAnimationFrame)(function() {
+							player.cancel();
+						});
+					}
+				};
+				return wrapper;
+			})(animation);
 		}
 		
-		// TODO: 'onfinish' attribute has been removed from W3C spec, switch to 'finished' Promise (wait for polyfill/browsers to catch up first a bit)
+		/// Setup Animation Player
+		var player = document.timeline.play(animation);
+		
 		player.finished.then(function() {
 			if(transition.exit) transition.exit.call(context, cache);
-			Choreo.Exit.call(player, from, to);
+			Choreo.Exit.call(player, context.from, context.to, isReverse);
 			player.cancel();
+			context.to.offsetWidth; // Force relayout to avoid rendering glitch
 		});
 		
 		Choreo.trigger('postprocess', context, player);
+		
+		/// Allow painting in next frame
+		if(Choreo.Settings.noPaint === 'inline')
+			to.style.visibility = '';
+		
+		else if(Choreo.Settings.noPaint === 'class')
+			to.classList.remove('no-paint');
+		
 		return player;
 	},
 	
@@ -207,7 +270,7 @@ var Choreo = {
 	/// Sets up DOM (puts them closely together; to avoid need of z-index'ing which may affect stacking context)
 	/// and makes sure view containers stay in their final layouts, so you can safely do crazy stuff during your animation
 	/// NOTE: This means inline styles affected will be overwritten and affected view containers will be moved in your DOM
-	Entry: function entryDOM(from, to) {
+	Entry: function entryDOM(from, to, isReverse) {
 		/// Show new view
 		if(from && to)
 		{
@@ -226,12 +289,6 @@ var Choreo = {
 				var siblings = Choreo.Utility.commonSiblings(from, to);
 				siblings[0].parentNode.insertBefore(siblings[1], siblings[0].nextSibling);
 			}
-			
-			// Need to fix ancestor as per above...
-			
-			/// Allow layout and then calculate it
-			if(Choreo.Settings.noLayout === 'inline') to.style.display = ''; else
-			if(Choreo.Settings.noLayout === 'class') to.classList.remove('no-layout');
 			
 			/// Get bounding boxes and prep layouts
 			var fbox = from.getBoundingClientRect();
@@ -265,17 +322,31 @@ var Choreo = {
 	/// Removes inline styles
 	Exit: function exitDOM(from, to, isReverse) {
 		/// Just to make it absolutely clear here on what is front-facing or behind the other view
-		var back = from, front = to;
+		var back, front;
 		
-		// TODO: Make reversable for cancelations, e.g. swap front with back?
+		if(isReverse)
+		{
+			back = to;
+			front = from;
+		}
+		
+		else
+		{
+			back = from;
+			front = to;
+		}
 		
 		// Make front permanent, hide back
 		if(back)
 		{
-			if(Choreo.Settings.noLayout === 'inline') back.style.display = 'none'; else
-			if(Choreo.Settings.noLayout === 'class') back.classList.add('no-layout');
+			if(Choreo.Settings.noLayout === 'inline')
+				back.style.display = 'none';
+			
+			else if(Choreo.Settings.noLayout === 'class')
+				back.classList.add('no-layout');
 		}
-
+		
+		/// Reset the positioning to flow normally again
 		if(front && back)
 		{
 			front.style.position = '';
@@ -342,89 +413,7 @@ var Choreo = {
 			else throw new Error('Syntax Error in Animation.edge!', direction);
 		},
 		
-		/// Work in Progress; I want to be able to reveal an element from growing or shrinking from a circle (or other shape)
-		reveal: function(element, options) {
-			var isWrapped = false;
-			var view = Choreo.Utility.closestClip(element);
-			var parent = options.context? options.context.from.parentNode : view;
-			var viewRect = view.getBoundingClientRect();
-			var elementRect = element.getBoundingClientRect();
-			var proxy = element.cloneNode(true);
-			var wrapper = document.createElement('div');
-			proxy.style.position = 'absolute';
-			proxy.style.top = '50%';
-			proxy.style.left = '50%';
-			proxy.style.width = elementRect.width + 'px';
-			proxy.style.height = elementRect.height + 'px';
-			proxy.style.margin = '0';
-			proxy.style.willChange = 'transform';
-			wrapper.style.position = 'absolute';
-			if(options.occlude) wrapper.style.overflow = 'hidden';
-			wrapper.style.borderRadius = '50%';
-			if(options.background) wrapper.style.background = options.background;
-			wrapper.style.willChange = 'transform';
-			wrapper.appendChild(proxy);
-			
-			var minDiameter = Math.sqrt(elementRect.width*elementRect.width + elementRect.height*elementRect.height);
-			var maxDiameter = (function(a, b) {
-				var width = a.width + 2*Math.abs((a.left + a.width*.5) - (b.left + b.width*.5));
-				var height = a.height + 2*Math.abs((a.top + a.height*.5) - (b.top + b.height*.5));
-				var centerToEdge = Math.sqrt(width*width + height*height);
-				return centerToEdge;
-			})(viewRect, elementRect);
-			wrapper.style.width = wrapper.style.height = minDiameter + 'px';
-			
-			var max = 1 + (maxDiameter/minDiameter);
-			var min = 0;
-			function renderAt(fraction) {
-// 				var scale = 1.0 + (maxDiameter/minDiameter) * fraction;
-				var scale = min + (max - min)*fraction;
-				scale = Math.max(0.00001, scale);
-				proxy.style.transform = proxy.style.webkitTransform = proxy.style.msTransform = 'translate(-50%, -50%) scale(' + (1/scale) + ')';
-				wrapper.style.transform = wrapper.style.webkitTransform = wrapper.style.msTransform = 'translate(-50%, -50%) scale(' + scale + ')';
-			}
-			
-			var effect = new KeyframeEffect(element, [], {
-				duration: options.duration || 500,
-				delay: options.delay || 0,
-				fill: options.fill || 'none',
-				easing: options.easing || 'linear'
-			});
-			
-			/// checking for null is the correct/specced way of doing things, but right now is really buggy (e.g. on .reverse();)
-			effect.onsample = function(fraction, target, effect) {
-				/// Interpolate
-				if(isWrapped && (fraction < 1 && fraction > 0)) // fraction !== null)
-				{
-					renderAt(fraction);
-				}
-				
-				/// Enter
-				if(!isWrapped && (fraction > 0 && fraction < 1)) // fraction !== null)
-				{
-					wrapper.style.left = (element.offsetLeft + element.offsetWidth*.5) + 'px';
-					wrapper.style.top = (element.offsetTop + element.offsetHeight*.5) + 'px';
-					element.style.visibility = 'hidden';
-					if(options.context && options.context.from.nextSibling) parent.insertBefore(wrapper, options.context.from.nextSibling);
-					else parent.appendChild(wrapper);
-					
-					isWrapped = true;
-					
-					renderAt(fraction);
-				}
-				
-				/// Exit
-				else if(isWrapped && !(fraction > 0 && fraction < 1)) // fraction === null)
-				{
-					parent.removeChild(wrapper);
-					element.style.visibility = null;
-					isWrapped = false;
-				}
-			};
-			return effect;
-		},
-		
-		/// Play multiple animations at once but each element has their animation delayed based on distance to an origin position
+		/// Play multiple animations at once but each element has their animation delayed based on distance to an origin position
 		/// Great for the 'hierarchical timing' technique
 		step: function(elements, keyframes, options) {
 			/// Get all them rects
@@ -711,7 +700,7 @@ var Choreo = {
 			var elementRect = element.getBoundingClientRect();
 			var proxy = this.proxy = element.cloneNode(true);
 			proxy.style.position = 'absolute';
-			proxy.style.top = proxy.style.left = '50%';
+			proxy.style.top = proxy.style.left = '0px';
 			proxy.style.width = elementRect.width + 'px';
 			proxy.style.height = elementRect.height + 'px';
 			proxy.style.margin = '0';
@@ -719,6 +708,7 @@ var Choreo = {
 			
 			var wrapper = this.wrapper = document.createElement('div');
 			wrapper.style.position = 'absolute';
+			wrapper.style.left = wrapper.style.top = '0px';
 			wrapper.style.willChange = 'transform';
 			wrapper.appendChild(proxy);
 			
@@ -749,15 +739,17 @@ var Choreo = {
 			if(shape === 'circle') // Wrap target element with circle
 			{
 				var elementRect = this.element.getBoundingClientRect();
-				var minDiameter = (function(element, offset) {
+				this.minDiameter = (function(element, offset) {
 					var width = element.width + Math.abs(offset.x);
 					var height = element.height + Math.abs(offset.y);
-					return Math.sqrt(Math.pow(width, 2) + Math.pow(height, 2));
+					var diameter = Math.sqrt(Math.pow(width, 2) + Math.pow(height, 2));
+					return Math.ceil(diameter); // using Math.ceil we avoid off-by-one calc errors
 				})(elementRect, options.position || { x: 0, y: 0 });
-				var maxDiameter = (function(view, element) {
+				this.maxDiameter = (function(view, element) {
 					var width = view.width + Math.abs(element.x - view.x);
 					var height = view.height + Math.abs(element.y - view.y);
-					return Math.sqrt(Math.pow(width, 2) + Math.pow(height, 2));
+					var diameter = Math.sqrt(Math.pow(width, 2) + Math.pow(height, 2));
+					return Math.ceil(diameter); // using Math.ceil we avoid off-by-one calc errors
 				})({
 					x: this.viewRect.left + this.viewRect.width*.5,
 					y: this.viewRect.top + this.viewRect.height*.5,
@@ -773,9 +765,9 @@ var Choreo = {
 				wrapper.background = options.background || 'none';
 				wrapper.borderRadius = '50%';
 				wrapper.border = options.border || '';
-				wrapper.width = wrapper.height = minDiameter + 'px';
+				wrapper.width = wrapper.height = this.minDiameter + 'px';
 				
-				this.maxScale = 1 + (maxDiameter/minDiameter);
+				this.maxScale = 1 + (this.maxDiameter/this.minDiameter);
 				this.midScale = 1;
 				this.minScale = 0;
 			}
@@ -809,6 +801,18 @@ var Choreo = {
 				/// Enter
 				if(!isWrapped && (fraction > 0 && fraction < 1)) // fraction !== null)
 				{
+					var elementRect = Revealer.element.getBoundingClientRect();
+					Revealer.wrapperOffset = {
+						x: elementRect.left + elementRect.width*.5,
+						y: elementRect.top + elementRect.height*.5
+					};
+					Revealer.proxyOffset = {
+						x: Revealer.minDiameter*.5,
+						y: Revealer.minDiameter*.5
+					};
+					
+					
+					/*
 					if(options.position)
 					{
 						var rect = Revealer.element.getBoundingClientRect();
@@ -827,6 +831,7 @@ var Choreo = {
 						Revealer.wrapper.style.left = (Revealer.element.offsetLeft + Revealer.element.offsetWidth*.5) + 'px';
 						Revealer.wrapper.style.top = (Revealer.element.offsetTop + Revealer.element.offsetHeight*.5) + 'px';
 					}
+					*/
 
 					Revealer.element.style.visibility = 'hidden';
 					if(options.context && options.context.from.nextSibling) parent.insertBefore(Revealer.wrapper, options.context.from.nextSibling);
@@ -866,8 +871,8 @@ var Choreo = {
 			scale = Math.max(0.00001, scale);
 			var proxy = this.proxy.style;
 			var wrapper = this.wrapper.style;
-			proxy.transform = proxy.webkitTransform = proxy.msTransform = 'translate(-50%, -50%) scale(' + (1/scale) + ')' + (this.proxyOffset? ' translate(' + this.proxyOffset.x + 'px, ' + this.proxyOffset.y + 'px)' : '');
-			wrapper.transform = wrapper.webkitTransform = wrapper.msTransform = 'translate(-50%, -50%) scale(' + scale + ')';
+			proxy.transform = proxy.webkitTransform = proxy.msTransform = ['translate(-50%, -50%) translate(', this.proxyOffset.x, 'px, ', this.proxyOffset.y, 'px) scale(', 1/scale, ')'].join('');
+			wrapper.transform = wrapper.webkitTransform = wrapper.msTransform = ['translate(-50%, -50%) translate(', this.wrapperOffset.x, 'px, ', this.wrapperOffset.y, 'px) scale(', scale, ')'].join('');
 		};
 		
 		/// Set the animation state of the Revealer
@@ -920,7 +925,7 @@ var Choreo = {
 		/// These on the other hand are too complex for the Web Animation API to handle in it's `easing` property does NOT allow custom easing functions
 		
 // Note for self when implementing:
-// initialForce means swapping END value when interpolation => 1.0 for the START value
+// initialForce means swapping END value when interpolation => 1.0 for the START value
 // (that is, the curve loops back to beginning, like bounce & forceWithGravity)
 // (It's a hack by applying temp middle-man option to re-use code)
 
