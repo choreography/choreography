@@ -85,7 +85,7 @@ article.home nav {
 
 
 .tile:focus { outline: 8px solid white }
-/* .tile:hover { color: white; background-color: hsl(215, 50%, 60%) } */
+.tile:hover { color: white; background-color: hsl(215, 50%, 60%) }
 /* .tile:active */
 .tile.is-held { background-color: hsl(215, 50%, 40%); outline: none }
 

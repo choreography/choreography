@@ -527,19 +527,6 @@ var Choreo = {
 			return new GroupEffect(effects);
 		},
 		
-
-		quadraticCurve: function(a, b, c, iterations, fn) {
-			var frames = [];
-			for(var iter = 0; iter <= iterations; ++iter)
-			{
-				var t = iter/iterations;
-				var x = (1 - t) * (1 - t) * a.x + 2 * (1 - t) * t * b.x + t * t * c.x;
-				var y = (1 - t) * (1 - t) * a.y + 2 * (1 - t) * t * b.y + t * t * c.y;
-				frames.push(fn? fn(x, y, t) : { transform: ['translate(', x, 'px, ', y, 'px)'].join('') });
-			}
-			return frames;
-		}
-		
 		
 		/*
 			Any other useful animation-creating functions?
@@ -566,12 +553,23 @@ var Choreo = {
 				else if(this.from)
 					return Choreo.Animate.fade(this.from, 'out', { duration: settings.duration });
 			}
-		},
-		
-		/// Work in Progress; I want to be able to reveal a view from growing or shrinking from a circle (or other shape)
-		reveal: function() {
-			return function() {}
 		}
+	},
+	
+	
+	Transform: {
+		quadraticCurve: function(a, b, c, iterations, fn) {
+			var frames = [];
+			for(var iter = 0; iter <= iterations; ++iter)
+			{
+				var t = iter/iterations;
+				var x = (1 - t) * (1 - t) * a.x + 2 * (1 - t) * t * b.x + t * t * c.x;
+				var y = (1 - t) * (1 - t) * a.y + 2 * (1 - t) * t * b.y + t * t * c.y;
+				frames.push(fn? fn(x, y, t) : { transform: ['translate(', x, 'px, ', y, 'px)'].join('') });
+			}
+			return frames;
+		}
+		
 	},
 	
 	

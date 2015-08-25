@@ -13,6 +13,7 @@ article.view {
 
 article.view.is-hidden { visibility: hidden; pointer-events: none }
 article.view.no-layout { display: none }
+article.view.no-paint { visibility: hidden }
 html.no-js article.view.no-layout:first-child { display: initial }
 
 

@@ -32,7 +32,7 @@ Choreo.define({ from: 'article.a', to: 'article.b' }, function() {
 		
 		new KeyframeEffect(
 			tapped,
-			Choreo.Animate.quadraticCurve(
+			Choreo.Transform.quadraticCurve(
 				{ x: 0, y: 0 },
 				{ x: delta.x, y: 0 },
 				{ x: delta.x, y: delta.y },
@@ -68,34 +68,30 @@ Choreo.define({ from: 'article.a', to: 'article.b' }, function() {
 			{ opacity: 1 }
 		], { duration: 0, delay: 400, fill: 'both' }),
 		
-		(new Choreo.Revealer(toHeader, {
+		new Choreo.Revealer(toHeader, {
 			shape: 'circle',
 			from: 'nothing',
 			to: 'normal',
-// 			position: headerCenter,
 			parent: this.to,
 			
 			duration: 600,
 			delay: 400,
 			easing: 'ease-in-out'
-		})).effect
+		}).effect,
 		
-
-		/*
-			The following doesn't seem to work, I wonder why?
+		Choreo.Animate.evade(toHeader, this.to.querySelectorAll('button.flat'), function(element) {
+			return new KeyframeEffect(element, [
+				{ opacity: 0, transform: 'translate3d(' + (this.direction.x*20) + 'px, ' + (this.direction.y*20) + 'px, 0px) scale(0.9)' },
+				{ opacity: 1, transform: 'translate3d(0px, 0px, 0px) scale(1)' }
+			], {
+				delay: 500 + this.distance*0.8,
+				duration: 400,
+				fill: 'both',
+				easing: 'cubic-bezier(.33,.55,.46,1.14)'
+			});
+		})
 		
-		(new Choreo.Revealer(this.to, {
-			shape: 'circle',
-			from: 'nothing',
-			to: 'normal',
-			position: tapCenter,
-
-			duration: 600,
-			delay: 300,
-			easing: 'ease-in-out'
-		})).effect
-		*/
-	], { fill: 'both' });
+	]);
 });
 
 

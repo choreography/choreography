@@ -1,0 +1,97 @@
+body {
+	font: 18px/1.2 Lato, sans-serif;
+}
+
+header.illustrious {
+	width: 400px;
+	margin: 10px;
+	font-size: 32px;
+}
+
+
+
+section.examples {
+	padding: 10px;
+	border-radius: 4px;
+	margin: 10px;
+	background: hsl(0, 0%, 85%);
+}
+
+section.examples > h2 {
+	font-size: 26px;
+}
+
+section.examples > h2,
+section.examples > p {
+	width: 400px;
+}
+
+nav.tiles {
+	max-width: 1280px;
+	margin: 0 auto;
+	padding: 2%;
+	font-size: 0;
+	text-align: center;
+}
+
+.tile {
+	position: relative;
+	display: inline-block;
+	width: 31%;
+	height: 0;
+	overflow: hidden;
+	padding-top: 140px;
+	margin: 1%;
+	background: hsl(215, 50%, 50%);
+	color: white;
+	vertical-align: top;
+	text-align: left;
+	-moz-user-select: none;
+	-webkit-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+	-webkit-tap-highlight-color: rgba(0,0,0,0);
+	-webkit-tap-highlight-color: transparent;
+	-webkit-backface-visibility: hidden;
+	-webkit-transform: translateZ(0);
+}
+
+.tile.wide { width: 64% }
+
+@media only screen and (max-width: 960px) {
+	.tile { width: 47.5% }
+	.tile.wide { width: 97% }
+}
+
+@media only screen and (max-width: 600px) {
+/* 	.tile { padding-top: 30% } */
+}
+
+
+@media only screen and (max-width: 480px) {
+	.tile { width: 97% }
+}
+
+.tile.full { width: 97% }
+
+
+.tile:focus { outline: 8px solid white }
+.tile:hover { color: white; background-color: hsl(215, 50%, 60%) }
+.tile:active { background-color: hsl(215, 50%, 40%); outline: none }
+
+.tile.disabled {
+	background-color: hsl(215, 10%, 50%);
+	color: #aaa;
+	pointer-events: none;
+}
+
+
+.tile h3 {
+	position: absolute;
+	top: 50%;
+	left: 20px;
+	right: 20px;
+	font: 24px/1.1 Lato, sans-serif;
+	-webkit-transform: translateY(-50%);
+	transform: translateY(-50%);
+}
