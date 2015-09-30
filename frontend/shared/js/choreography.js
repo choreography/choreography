@@ -495,11 +495,27 @@ var Choreo = {
 		evade: function(target, elements, onEach) {
 			/// Get and calculate all that fancy geometry
 			var rects = Array.prototype.map.call(elements, function(element) { return element.getBoundingClientRect() });
-			var from = target.getBoundingClientRect();
+			var from;
+			
+			if(typeof target === 'object'
+			&& 'left' in target && 'top' in target
+			&& 'width' in target && 'height' in target)
+				from = { x: target.left + target.width*.5, y: target.top + target.height*.5 };
+			
+			else if(typeof target === 'object'
+			&& 'x' in target && 'y' in target)
+				from = target;
+			
+			else
+			{
+				from = target.getBoundingClientRect();
+				from = { x: from.left + from.width*.5, y: from.top + from.height*.5 };
+			}
+			
 			var deltas = rects.map(function(rect) {
 				return {
-					x: (rect.left + rect.width*.5) - (from.left + from.width*.5),
-					y: (rect.top + rect.height*.5) - (from.top + from.height*.5)
+					x: (rect.left + rect.width*.5) - from.x,
+					y: (rect.top + rect.height*.5) - from.y
 				}
 			});
 			var distances = deltas.map(function(delta) { return Math.sqrt(Math.pow(delta.x, 2) + Math.pow(delta.y, 2)) });
