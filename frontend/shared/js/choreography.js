@@ -163,7 +163,6 @@ var Choreo = {
 		else if(Choreo.Settings.noPaint === 'class')
 			to.classList.add('no-paint');
 		
-
 		/// Allow layout for calculation
 		if(Choreo.Settings.noLayout === 'inline')
 			to.style.display = '';
@@ -310,11 +309,26 @@ var Choreo = {
 		}
 		
 		
-		else if(to)
+		/// Just to make it absolutely clear here on what is front-facing or behind the other view
+		var back, front;
+		
+		if(isReverse)
+		{
+			back = to;
+			front = from;
+		}
+		
+		else
+		{
+			back = from;
+			front = to;
+		}
+		
+		if(front)
 		{
 			/// Allow layout
-			if(Choreo.Settings.noLayout === 'inline') to.style.display = ''; else
-			if(Choreo.Settings.noLayout === 'class') to.classList.remove('no-layout');
+			if(Choreo.Settings.noLayout === 'inline') front.style.display = ''; else
+			if(Choreo.Settings.noLayout === 'class') front.classList.remove('no-layout');
 		}
 	},
 	
