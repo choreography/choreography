@@ -51,17 +51,17 @@ Choreo.define({
 			y: (this.isReverse? this.to : this.from).scrollTop + ctaBox.top + ctaBox.height*.5
 				// account for the current page scroll affecting calculated position
 		},
-		background: 'hsl(120, 90%, 40%)',
+// 		background: 'hsl(120, 90%, 40%)',
 		
 		duration: 200 + (window.innerHeight*.2),
 		easing: 'ease-in'
 	});
 	revealer.proxy.classList.remove('no-paint');
-	Array.prototype.slice.call(revealer.proxy.querySelectorAll('header.upfront, em.counter'))
+	Array.prototype.slice.call(revealer.proxy.querySelectorAll('header.upfront, em.counter, footer.credit'))
 	.forEach(function(element) {
 		element.classList.add('no-paint');
 	});
-
+	
 	/// Make sure to normalise page scrolls from and to
 	if(this.isReverse)
 		this.from.scrollTop = revealer.proxy.scrollTop = this.to.scrollTop;
@@ -83,7 +83,7 @@ Choreo.define({
 				easing: 'cubic-bezier(.33,.55,.46,1.3)'
 			});
 		}),
-
+		
 		Choreo.Animate.evade(cta, this.to.querySelectorAll('header.upfront, em.counter'), function(element) {
 			return new KeyframeEffect(element, [
 				{ opacity: 0, transform: 'translate3d(' + (-this.direction.x*20) + 'px, ' + (-this.direction.y*20) + 'px, 0px) scale(0.9)' },

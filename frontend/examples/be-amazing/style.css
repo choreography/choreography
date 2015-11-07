@@ -113,6 +113,17 @@ section.streak em.counter {
 }
 
 
+footer.credit {
+	border-bottom: 4px solid;
+	padding: 10px 40px;
+	font-size: 12px;
+}
+
+footer.credit a {
+	color: hsl(120, 50%, 40%);
+	text-decoration: underline;
+}
+
 
 
 
@@ -147,6 +158,9 @@ article.b a.settings {
 	background-image: url(assets/cog.light.svg);
 }
 
+article.b footer.credit a {
+	color: hsl(120, 100%, 80%);
+}
 
 
 
