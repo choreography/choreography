@@ -744,12 +744,14 @@ var Choreo = {
 			
 			if(options.from === 'nothing') this.startScale = this.minScale; else
 			if(options.from === 'normal') this.startScale = this.midScale; else
-			if(options.from === 'everything') this.startScale = this.maxScale;
+			if(options.from === 'everything') this.startScale = this.maxScale; else
+			if(typeof options.from === 'number') this.startScale = options.from / this.minDiameter;
 			else this.startScale = this.midScale;
 			
 			if(options.to === 'nothing') this.endScale = this.minScale; else
 			if(options.to === 'normal') this.endScale = this.midScale; else
-			if(options.to === 'everything') this.endScale = this.maxScale;
+			if(options.to === 'everything') this.endScale = this.maxScale; else
+			if(typeof options.to === 'number') this.endScale = options.to / this.minDiameter;
 			else this.endScale = this.maxScale;
 			
 // 			Hmm, lets see, how does the API look?
@@ -766,18 +768,23 @@ var Choreo = {
 			var shape = options.shape || 'circle';
 			if(shape === 'circle') // Wrap target element with circle
 			{
+				// Does the math figure out correctly? Specifically position offsets
 				var elementRect = this.element.getBoundingClientRect();
 				this.minDiameter = (function(element, offset) {
-					var width = element.width + Math.abs(offset.x);
-					var height = element.height + Math.abs(offset.y);
+					var width = element.width;// + Math.abs(offset.x);
+					var height = element.height;// + Math.abs(offset.y);
 					var diameter = Math.sqrt(Math.pow(width, 2) + Math.pow(height, 2));
 					return Math.ceil(diameter); // using Math.ceil we avoid off-by-one calc errors
 				})(elementRect, options.position || { x: 0, y: 0 });
 				this.maxDiameter = (function(view, element) {
-					var width = view.width + Math.abs(element.x - view.x);
-					var height = view.height + Math.abs(element.y - view.y);
-					var diameter = Math.sqrt(Math.pow(width, 2) + Math.pow(height, 2));
-					return Math.ceil(diameter); // using Math.ceil we avoid off-by-one calc errors
+					var width = Math.abs(view.width*.5 - element.x)*2;
+					var height = Math.abs(view.height*.5 - element.y)*2;
+					var diameter = Math.sqrt(width * width + height * height);
+					return Math.ceil(diameter);
+// 					var width = view.width; // + Math.abs(element.x - view.x);
+// 					var height = view.height; // + Math.abs(element.y - view.y);
+// 					var diameter = Math.sqrt(Math.pow(width, 2) + Math.pow(height, 2));
+// 					return Math.ceil(diameter); // using Math.ceil we avoid off-by-one calc errors
 				})({
 					x: this.viewRect.left + this.viewRect.width*.5,
 					y: this.viewRect.top + this.viewRect.height*.5,
@@ -815,8 +822,8 @@ var Choreo = {
 				easing: options.easing || 'linear'
 			});
 			
-			/// Checking for null is the correct/specced way of doing things, but right now is really buggy (e.g. on .reverse();)
-			/// So I am entering/exiting reveal animations via checking if the fraction is between 0.0 and 1.0 or not
+			/// Checking for null is the correct/specced way of doing things (for 'fraction'), but right now is really buggy (e.g. on .reverse();)
+			/// So I am entering/exiting reveal animations via checking if the fraction is inbetween 0.0 and 1.0 or not
 			var isWrapped = false;
 			var Revealer = this;
 			effect.onsample = function(fraction, target, effect) {
@@ -829,38 +836,20 @@ var Choreo = {
 				/// Enter
 				if(!isWrapped && (fraction > 0 && fraction < 1)) // fraction !== null)
 				{
-					var elementRect = Revealer.element.getBoundingClientRect();
-					Revealer.wrapperOffset = {
-						x: elementRect.left + elementRect.width*.5,
-						y: elementRect.top + elementRect.height*.5
-					};
-					Revealer.proxyOffset = {
-						x: Revealer.minDiameter*.5,
-						y: Revealer.minDiameter*.5
-					};
-					
-					
-					/*
 					if(options.position)
 					{
-						var rect = Revealer.element.getBoundingClientRect();
-						Revealer.proxyOffset = {
-							x: (rect.left + rect.width*.5) - options.position.x,
-							y: (rect.top + rect.height*.5) - options.position.y
-						};
-// 						Revealer.proxy.style.left = ((elementRect.left + elementRect.width*.5) - options.position.x) + 'px';
-// 						Revealer.proxy.style.top = ((elementRect.top + elementRect.height*.5) - options.position.y) + 'px';
-// 						Revealer.proxy.style.left = ((Revealer.element.offsetLeft + Revealer.element.offsetWidth*.5) - options.position.x) + 'px;';
-// 						Revealer.proxy.style.top = ((Revealer.element.offsetTop + Revealer.element.offsetHeight*.5) - options.position.y) + 'px;';
+						Revealer.wrapperOffset = options.position;
 					}
-					
+
 					else
 					{
-						Revealer.wrapper.style.left = (Revealer.element.offsetLeft + Revealer.element.offsetWidth*.5) + 'px';
-						Revealer.wrapper.style.top = (Revealer.element.offsetTop + Revealer.element.offsetHeight*.5) + 'px';
+						var elementRect = Revealer.element.getBoundingClientRect();
+						Revealer.wrapperOffset = {
+							x: elementRect.left + elementRect.width*.5,
+							y: elementRect.top + elementRect.height*.5
+						};
 					}
-					*/
-
+					
 					Revealer.element.style.visibility = 'hidden';
 					if(options.context && options.context.from.nextSibling) parent.insertBefore(Revealer.wrapper, options.context.from.nextSibling);
 					else Revealer.parent.appendChild(Revealer.wrapper);
@@ -899,7 +888,7 @@ var Choreo = {
 			scale = Math.max(0.00001, scale);
 			var proxy = this.proxy.style;
 			var wrapper = this.wrapper.style;
-			proxy.transform = proxy.webkitTransform = proxy.msTransform = ['translate(-50%, -50%) translate(', this.proxyOffset.x, 'px, ', this.proxyOffset.y, 'px) scale(', 1/scale, ')'].join('');
+			proxy.transform = proxy.webkitTransform = proxy.msTransform = ['translate(-50%, -50%) translate(', (this.minDiameter*.5), 'px, ', (this.minDiameter*.5), 'px) scale(', 1/scale, ')translate(50%, 50%)  translate(', -this.wrapperOffset.x, 'px, ', -this.wrapperOffset.y, 'px)'].join('');
 			wrapper.transform = wrapper.webkitTransform = wrapper.msTransform = ['translate(-50%, -50%) translate(', this.wrapperOffset.x, 'px, ', this.wrapperOffset.y, 'px) scale(', scale, ')'].join('');
 		};
 		

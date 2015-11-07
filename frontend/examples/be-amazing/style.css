@@ -1,0 +1,184 @@
+/*
+	Setup
+*/
+
+body {
+	overflow: hidden;
+	margin: 0;
+	background: hsl(0, 0%, 90%);
+	font: 20px/1.5 Arial, sans-serif;
+}
+
+article.view {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	overflow-x: scroll;
+}
+
+.no-layout { display: none }
+.no-paint { visibility: hidden }
+
+
+
+/*
+	Components
+*/
+
+nav.global {
+	display: -webkit-flex;
+	display: flex;
+	-webkit-flex-flow: row nowrap;
+	flex-flow: row nowrap;
+	-webkit-justify-content: space-between;
+	justify-content: space-between;
+}
+
+nav.global a {
+	display: block;
+	width: 50px;
+	height: 50px;
+	background-repeat: no-repeat;
+	background-position: center;
+	background-size: 70%;
+}
+
+a.profile {
+	background-image: url(assets/profile.dark.svg);
+}
+
+a.settings {
+	background-image: url(assets/cog.dark.svg);
+}
+
+
+
+header.upfront {
+	display: -webkit-flex;
+	display: flex;
+	-webkit-flex-flow: column nowrap;
+	flex-flow: column nowrap;
+	-webkit-align-items: center;
+	align-items: center;
+	-webkit-justify-content: center;
+	justify-content: center;
+	height: 120px;
+}
+
+header.upfront h1 {
+	font-size: 26px;
+}
+
+header.upfront small {
+	opacity: 0.7;
+	font-size: 16px;
+}
+
+
+button.cta {
+	display: block;
+	width: 180px;
+	height: 180px;
+	margin: 50px auto 80px;
+	border-radius: 100%;
+	background-repeat: no-repeat;
+	background-position: center;
+	background-size: 40%;
+}
+
+button.cta.check {
+	background-color: hsl(120, 90%, 40%);
+	background-image: url(assets/check.white.svg);
+}
+
+button.cta.checked {
+	background-color: hsl(120, 90%, 100%);
+	background-image: url(assets/check.green.svg);
+}
+
+
+
+section.streak {
+	text-align: center;
+}
+
+section.streak small.title {
+	display: block;
+}
+section.streak em.counter {
+	display: block;
+	font-size: 64px;
+}
+
+
+
+
+
+/*
+	Pages
+*/
+
+article.a {
+	background: hsl(0, 0%, 90%);
+	color: hsl(0, 0%, 20%);
+}
+
+article.a em.counter {
+	color: hsl(120, 90%, 40%);
+}
+
+
+article.b {
+	background: hsl(120, 90%, 40%);
+	color: hsl(0, 0%, 90%);
+}
+
+article.b em.counter {
+	color: hsl(0, 0%, 90%);
+}
+
+article.b a.profile {
+	background-image: url(assets/profile.light.svg);
+}
+
+article.b a.settings {
+	background-image: url(assets/cog.light.svg);
+}
+
+
+
+
+/*
+
+header {
+	padding: 40px;
+	background: hsl(215, 100%, 50%);
+	color: white;
+	font: 60px/1.1 Arial, sans-serif;
+}
+
+nav {
+	padding: 40px;
+}
+
+button {
+	border: none;
+	padding: 10px 40px;
+	outline: none;
+	background: hsl(215, 100%, 50%);
+	color: white;
+	font: 24px/1.1 Arial, sans-serif;
+	cursor: pointer;
+}
+
+button.forward,
+article.b header {
+	background: hsl(120, 40%, 50%);
+}
+
+article.b header {
+	padding: 80px 40px;
+}
+*/

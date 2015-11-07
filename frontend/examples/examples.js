@@ -16,7 +16,7 @@ Choreo.define({
 			delay: this.distance*0.8,
 			duration: 400,
 			fill: 'both',
-			easing: 'cubic-bezier(.33,.55,.46,1.14)'
+			easing: 'cubic-bezier(.33,.55,.46,1.3)'
 		});
 	});
 });

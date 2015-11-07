@@ -56,8 +56,9 @@ Choreo.define({ from: 'article.a', to: 'article.b' }, function() {
 			]
 		}, {
 			origin: tapCenter,
+			delay: -20,
 			duration: 300,
-			stepMult: 2,
+			stepMult: 1.5,
 			fill: 'both',
 			easing: 'cubic-bezier(.11,.57,.54,1.4)'
 		}),
