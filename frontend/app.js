@@ -212,7 +212,7 @@ Choreo.define({
 	
 	return Choreo.Animate.evade(gloriousHeader, navItems, function(element) {
 		return new KeyframeEffect(element, [
-			{ opacity: 0, transform: 'translate3d(' + (this.direction.x*20) + 'px, ' + (this.direction.y*20) + 'px, 0px) scale(0.9)' },
+			{ opacity: 0, transform: element.matches('footer.curious')? '' : 'translate3d(' + (this.direction.x*20) + 'px, ' + (this.direction.y*20) + 'px, 0px) scale(0.9)' },
 			{ opacity: 1, transform: 'translate3d(0px, 0px, 0px) scale(1)' }
 		], {
 			delay: this.distance*1.2,
@@ -233,28 +233,19 @@ Choreo.define({
 		{ opacity: 0 }
 	], { duration: 250 });
 	
-	var cover = new Choreo.Revealer(tapped, {
-		shape: 'circle',
-		from: 'normal',
-		to: 'everything',
-		background: 'hsl(140, 50%, 100%)',
-		
-		duration: 400,
-		fill: 'both',
-		easing: 'ease-in'
-	});
+	var items = Array.prototype.slice.call(this.from.querySelectorAll('header.glorious, a.flat, iframe.__slackin, section.blurb, footer.curious')).filter(function(node) { return node !== tapped });
 	
-	return new GroupEffect([
-		cover.effect,
-		
-		new KeyframeEffect(cover.proxy, [
-			{ opacity: 1 }, { opacity: 0 }
-		], { delay: 300, duration: 100, fill: 'both' }),
-		
-		new KeyframeEffect(this.to, [
-			{ opacity: 0 }, { opacity: 1 }
-		], { duration: 200, delay: 400, fill: 'both' })
-	], { fill: 'both' });
+	return Choreo.Animate.evade(tapped, items, function(element) {
+		return new KeyframeEffect(element, [
+			{ opacity: 1, transform: 'translate3d(0px, 0px, 0px) scale(1)' },
+			{ opacity: 0, transform: element.matches('footer.curious')? '' :'translate3d(' + (this.direction.x*20) + 'px, ' + (this.direction.y*20) + 'px, 0px)' }
+		], {
+			delay: this.distance*.1,
+			duration: 120,
+			fill: 'both',
+			easing: 'cubic-bezier(.33,.55,.46,1.14)'
+		});
+	});
 });
 
 
@@ -270,7 +261,10 @@ document.addEventListener('DOMContentLoaded', function(event) {
 		
 		player.finished.then(function() {
 			if('history' in window) history.pushState(null, null, location.pathname);
-			location = event.target.href;
+			if(event.target.hasAttribute('target') && event.target.getAttribute('target') === '_blank')
+				open(event.target.href);
+			else
+				location = event.target.href;
 		});
 	});
 });

@@ -1,38 +1,41 @@
 
 header.glorious {
-	padding: 40px 10px 10px;
+	padding: 30px 10px 10px;
 	text-align: center;
 }
 
 header.glorious p {
-	margin-bottom: 0
-}
-
-nav.delightful {
-	padding: 20px;
-	font-size: 0;
-	text-align: center;
+	margin-bottom: 0;
 	white-space: nowrap;
 }
+
+
+
 
 button.flat,
 a.flat {
 	display: inline-block;
-	padding: 10px 20px;
+	padding: 10px;
 	border-radius: 4px;
 	background: hsl(140, 40%, 50%);
-	margin: 6px;
+	margin: 4px;
 	color: white;
-	font: 20px/1 Lato;
+	font: 2.5vw/1 Lato;
 	vertical-align: top;
 }
 
-button.flat:active,
-a.flat:active {
-	background: hsl(140, 40%, 30%)
+@media only screen and (max-width: 720px) {
+	button.flat,
+	a.flat{ font-size: 18px /* = max-width * 2.5vw; */ }
 }
 
-a.flat:after {
+
+button.flat:active,
+a.flat:active {
+	background: hsl(140, 40%, 30%);
+}
+
+a.flat[href^="http"]:after {
 	content: '';
 	display: inline-block;
 	width: .6em;
@@ -44,27 +47,48 @@ a.flat:after {
 	background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cGF0aCBmaWxsPSIjZmZmIiBkPSJNODAuODcgNTEuMjRjLTMuNSAwLTYuMzYgMi44NC02LjM2IDYuMzV2MjYuOTNjMCAxLjQ3LTEuMTMgMi42Ni0yLjYgMi42NkgxNS40Yy0xLjQ3IDAtMi42Ni0xLjItMi42Ni0yLjY2di01Ni41YzAtMS40NiAxLjItMi42NSAyLjY2LTIuNjVoMjYuOTdjMy41IDAgNi4zNi0yLjg0IDYuMzYtNi4zNXMtMi44NS02LjM2LTYuMzYtNi4zNmgtMjdDNi45IDEyLjcgMCAxOS42IDAgMjguMDd2NTYuNWMwIDguNDcgNi45IDE1LjM3IDE1LjM2IDE1LjM3aDU2LjVjOC40NyAwIDE1LjM2LTYuOSAxNS4zNi0xNS4zN1Y1Ny42YzAtMy41Mi0yLjg0LTYuMzYtNi4zNS02LjM2ek04NC41NyAwSDU4LjIzYy0zLjUgMC02LjM1IDIuODUtNi4zNSA2LjM2IDAgMy41IDIuODQgNi4zNSA2LjM1IDYuMzVoMjBMMzYuMDcgNTQuOWMtMi40OCAyLjQ4LTIuNDggNi41IDAgOSAxLjI0IDEuMjMgMi44NyAxLjg1IDQuNSAxLjg1IDEuNjIgMCAzLjI1LS42MiA0LjUtMS44Nkw4Ny4yIDIxLjd2MjBjMCAzLjUyIDIuODUgNi4zNiA2LjM2IDYuMzYgMy41IDAgNi4zNS0yLjg0IDYuMzUtNi4zNVYxNS40Qzk5Ljk3IDYuOSA5My4wNyAwIDg0LjYgMHoiLz48L3N2Zz4=);
 }
 
-a.flat:after { visibility: hidden }
-a.flat:hover:after { visibility: initial }
-
 button.flat.disabled,
 a.flat.disabled {
-	-webkit-filter: grayscale(.7);
-	filter: grayscale(.7);
-	opacity: 0.7;
+	background: hsl(140, 0%, 50%, 0.5);
+	color: hsla(0, 0%, 100%, 0.5);
+	-webkit-filter: grayscale(0.9);
+	filter: grayscale(0.9);
 	pointer-events: none;
 }
 
 
 
 
-@media only screen and (max-width: 700px) { button.flat, a.flat { padding: 15px 30px } }
-@media only screen and (max-width: 500px) { button.flat, a.flat { padding: 18px 35px } }
+
+
+nav.delightful {
+	padding: 10px 3px;
+	font-size: 0;
+	text-align: center;
+	white-space: nowrap;
+}
+
+@media only screen and (min-width: 661px) {
+	nav.delightful a.flat { border-radius: 0; margin: 0 }
+	nav.delightful .flat ~ .flat { margin-left: 2px }
+	nav.delightful a.flat:first-child { border-radius: 4px 0 0 4px }
+	nav.delightful a.flat:last-child { border-radius: 0 4px 4px 0 }
+}
+
+@media only screen and (max-width: 660px) {
+	nav.delightful a.flat { display: block; padding: 15px; border-radius: 0; margin: 0 20px; font-size: 24px }
+	nav.delightful .flat ~ .flat { border-top: 2px solid hsl(140, 40%, 45%) }
+	nav.delightful a.flat:first-child { border-radius: 4px 4px 0 0 }
+	nav.delightful a.flat:last-child { border-radius: 0 0 4px 4px }
+
+}
+
 
 
 section.blurb {
 	padding: 20px 40px;
 	text-align: center;
+	white-space: nowrap;
 }
 
 
@@ -80,7 +104,7 @@ section.dialog {
 
 
 article.intro {
-	padding-bottom: 40px
+	padding-bottom: 100px
 }
 
 footer.curious {
@@ -89,16 +113,10 @@ footer.curious {
 	left: 0;
 	right: 0;
 	padding: 10px;
-	text-align: center;
-	font: 14px/1 Lato;
+	text-align: left;
+	font: 14px/1.7 Lato;
 }
 
-
-
-
-article.external {
-	background: white;
-}
 
 
 
