@@ -255,17 +255,20 @@ document.addEventListener('DOMContentLoaded', function(event) {
 	document.addEventListener('click', function(event) {
 		if(!(event.target.matches('a[href]') && !event.defaultPrevented)) return;
 		event.preventDefault();
-
-		event.target.classList.add('tapped');
-		var player = Choreo.graph('article.intro', 'article.external');
 		
-		player.finished.then(function() {
-			if('history' in window) history.pushState(null, null, location.pathname);
-			if(event.target.hasAttribute('target') && event.target.getAttribute('target') === '_blank')
-				open(event.target.href);
-			else
+		if(event.target.hasAttribute('target') && event.target.getAttribute('target') === '_blank')
+			open(event.target.href, '_blank');
+		
+		else
+		{
+			event.target.classList.add('tapped');
+			var player = Choreo.graph('article.intro', 'article.external');
+			
+			player.finished.then(function() {
+				if('history' in window) history.pushState(null, null, location.pathname);
 				location = event.target.href;
-		});
+			});
+		}
 	});
 });
 
