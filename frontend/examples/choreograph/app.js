@@ -4,6 +4,14 @@ tap('article.a button.rounded', function(event) {
 	event.target.classList.remove('tapped');
 });
 
+tap('article.b button.flat', function(event) {
+	var index = Array.prototype.indexOf.call(event.target.parentNode.children, event.target);
+	var button = document.querySelector('article.a nav > button.rounded:nth-child(' + (1 + index) + ')');
+	button.classList.add('tapped');
+	Choreo.graph('article.b', 'article.a');
+	button.classList.remove('tapped');
+});
+
 Choreo.define({ from: 'article.a', to: 'article.b' }, function() {
 	var tapped = this.from.querySelector('button.tapped');
 	var fromHeader = this.from.querySelector('header');

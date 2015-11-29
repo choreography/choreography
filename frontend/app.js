@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', function lastUserVisit (event) {
 		if (interval > 1 || interval === 0) intervalType += 's';
 		return [interval, intervalType].join(' ');
 	}
-
+	
 	var span = document.querySelector('span.last-visit');
 	span.textContent = ['Last visit was', timeSince(lastVisit), 'ago'].join(' ');
 	span.title = 'How long ago your last session with the website was. This is only to help YOU and is calculated and stored ONLY client-side with localStorage & sessionStorage.';
