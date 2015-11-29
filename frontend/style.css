@@ -24,6 +24,11 @@ a.flat {
 	vertical-align: top;
 }
 
+button.flat:hover,
+a.flat:hover {
+	background: hsl(140, 45%, 55%);
+}
+
 @media only screen and (max-width: 720px) {
 	button.flat,
 	a.flat{ font-size: 18px /* = max-width * 2.5vw; */ }
@@ -49,10 +54,10 @@ a.flat[href^="http"]:after {
 
 button.flat.disabled,
 a.flat.disabled {
-	background: hsl(140, 0%, 50%, 0.5);
-	color: hsla(0, 0%, 100%, 0.5);
-	-webkit-filter: grayscale(0.9);
-	filter: grayscale(0.9);
+	background: hsla(140, 20%, 30%, 0.2);
+	color: hsla(0, 0%, 100%, 0.3);
+/* 	-webkit-filter: grayscale(0.9);
+	filter: grayscale(0.9); */
 	pointer-events: none;
 }
 
@@ -62,18 +67,43 @@ a.flat.disabled {
 
 
 nav.delightful {
-	padding: 10px 3px;
+	padding: 40px 3px;
 	font-size: 0;
 	text-align: center;
-	white-space: nowrap;
 }
 
-@media only screen and (min-width: 661px) {
-	nav.delightful a.flat { border-radius: 0; margin: 0 }
-	nav.delightful .flat ~ .flat { margin-left: 2px }
-	nav.delightful a.flat:first-child { border-radius: 4px 0 0 4px }
-	nav.delightful a.flat:last-child { border-radius: 0 4px 4px 0 }
-}
+/* @media only screen and (min-width: 661px) { */
+	nav.delightful {
+		display: -webkit-flex;
+		-webkit-flex-flow: row;
+		-webkit-flex-wrap: wrap;
+		-webkit-justify-content: center;
+		
+		display: flex;
+		flex-flow: row;
+		flex-wrap: wrap;
+		justify-content: center;
+	}
+	nav.delightful a.flat {
+		display: -webkit-inline-flex;
+		-webkit-flex: 1 1 25vw;
+		-webkit-flex-flow: row;
+		-webkit-justify-content: center;
+		-webkit-align-items: center;
+		
+		display: inline-flex;
+		flex: 1 1 25vw;
+		flex-flow: row;
+		justify-content: center;
+		align-items: center;
+		
+		min-width: 200px;
+		min-height: 60px;
+		height: 11vw;
+		margin: .5vw;
+		box-shadow: 0 2px 0 0px hsla(0, 0%, 0%, 0.2), inset 0 1px 1px hsla(0, 0%, 100%, 0.6);
+	}
+/* }
 
 @media only screen and (max-width: 660px) {
 	nav.delightful a.flat { display: block; padding: 15px; border-radius: 0; margin: 0 20px; font-size: 24px }
@@ -81,14 +111,17 @@ nav.delightful {
 	nav.delightful a.flat:first-child { border-radius: 4px 4px 0 0 }
 	nav.delightful a.flat:last-child { border-radius: 0 0 4px 4px }
 
-}
+} */
 
 
 
 section.blurb {
-	padding: 20px 40px;
+	padding: 40px 40px;
 	text-align: center;
 	white-space: nowrap;
+	box-shadow: inset 0  2px 6px hsla(0, 0%, 0%, 0.05),
+	            inset 0 -2px 6px hsla(0, 0%, 0%, 0.05);
+	background: url(waves.png);
 }
 
 
@@ -104,7 +137,7 @@ section.dialog {
 
 
 article.intro {
-	padding-bottom: 100px
+	padding-bottom: 100px;
 }
 
 footer.curious {
@@ -124,7 +157,7 @@ footer.curious {
 	Slack
 */
 
-iframe.__slackin { margin: 11px 6px }
+iframe.__slackin {margin: 10px 6px 0;}
 div.__slackin iframe.__slackin { margin: 0 }
 div.__slackin {
 	position: absolute;

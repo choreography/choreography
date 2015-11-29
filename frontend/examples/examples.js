@@ -13,15 +13,18 @@ Choreo.define({
 			{ opacity: 0 },
 			{ opacity: 1 }
 		], 120),
-		Choreo.Animate.evade(header, items, function(element) {
+		Choreo.Animate.evade({
+			x: window.innerWidth/2,
+			y: window.innerHeight/2
+		}, items, function(element) {
 			return new KeyframeEffect(element, [
-				{ opacity: 0, transform: 'translate3d(' + (this.direction.x*20) + 'px, ' + (this.direction.y*20) + 'px, 0px) scale(0.9)' },
+				{ opacity: 0, transform: 'translate3d(' + (this.direction.x*40) + 'px, ' + (this.direction.y*40) + 'px, 0px) scale(0.9)' },
 				{ opacity: 1, transform: 'translate3d(0px, 0px, 0px) scale(1)' }
 			], {
-				delay: this.distance*0.8 - 100,
-				duration: 400,
+				delay: this.distance*0.4 - 100,
+				duration: 600,
 				fill: 'both',
-				easing: 'cubic-bezier(.33,.55,.46,1.3)'
+				easing: 'cubic-bezier(.33,.55,.46,1.15)'
 			});
 		})
 	]);
