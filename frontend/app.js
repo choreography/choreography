@@ -212,7 +212,7 @@ Choreo.define({
 	
 	return Choreo.Animate.evade(gloriousHeader, navItems, function(element) {
 		return new KeyframeEffect(element, [
-			{ opacity: 0, transform: element.matches('footer.curious')? '' : 'translate3d(' + (this.direction.x*20) + 'px, ' + (this.direction.y*20) + 'px, 0px) scale(0.9)' },
+			{ opacity: 0, transform: element.matches('footer.curious')? 'translate3d(0px, 0px, 0px) scale(1)' : 'translate3d(' + (this.direction.x*20) + 'px, ' + (this.direction.y*20) + 'px, 0px) scale(0.9)' },
 			{ opacity: 1, transform: 'translate3d(0px, 0px, 0px) scale(1)' }
 		], {
 			delay: this.distance*1.2,
@@ -238,7 +238,7 @@ Choreo.define({
 	return Choreo.Animate.evade(tapped, items, function(element) {
 		return new KeyframeEffect(element, [
 			{ opacity: 1, transform: 'translate3d(0px, 0px, 0px) scale(1)' },
-			{ opacity: 0, transform: element.matches('footer.curious')? '' :'translate3d(' + (this.direction.x*20) + 'px, ' + (this.direction.y*20) + 'px, 0px)' }
+			{ opacity: 0, transform: element.matches('footer.curious')? 'translate3d(0px, 0px, 0px) scale(1)' :'translate3d(' + (this.direction.x*20) + 'px, ' + (this.direction.y*20) + 'px, 0px)' }
 		], {
 			delay: this.distance*.1,
 			duration: 120,
